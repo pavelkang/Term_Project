@@ -50,12 +50,7 @@ class World(DirectObject):
         
         self.spaceSkyBox = load_model('skybox1.egg')
         self.spaceSkyBox.setScale(150)
-        #self.spaceSkyBox.setBin('background', 0)
-        #self.spaceSkyBox.setDepthWrite(0)
-        #self.spaceSkyBox.setTwoSided(True)
-        #self.spaceSkyBox.set_compass()
         self.spaceSkyBox.setLightOff()
-        #self.spaceSkyBox.setTexture(cubeMap, 1)
         self.spaceSkyBox.reparentTo(render)
         self.spaceSkyBox.setPos(0,0,-200)
         self.spaceSkyBox.setHpr(0,0,0)

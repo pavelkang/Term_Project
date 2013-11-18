@@ -24,53 +24,75 @@ from direct.interval.FunctionInterval import Func,Wait
 from direct.task.Task import Task
 import sys
 
+from math import pi, sin, cos
 #self written module
 from load import *
 
+import maze
+
+MAZE = maze.Maze()
+
 ACCELERATION = 70
-MAX_SPEED = 5
+MAX_SPEED = 4
 MAX_SPEED_SQ = MAX_SPEED ** 2
 
 # upward vector 
 UP = Vec3(0,0,1)
 
 class Labryn(DirectObject):
-    def __init__(self):
-        self.title = OnscreenText(text = "KAI KANG: BALL IN MAZE",
-                                  style = 1, fg=(1,1,1,1),
-                                  pos=(0.7,-0.95),scale= .07)
-        self.instructions = OnscreenText(text="Mouse pointer tilts the board",
-                                         pos = (-1.3, .95), fg=(1,1,1,1),
-                                         align = TextNode.ALeft, scale=.05)
+    def keyControl(self):
+        # get user input
         self.accept("escape", sys.exit) # ESC to quit
         self.accept("arrow_up",self.moveBall,["up"])
         self.accept("arrow_down",self.moveBall,["down"])
         self.accept("arrow_left",self.moveBall,["left"])
         self.accept("arrow_right",self.moveBall,["right"])
+        self.accept("r", self.setCamera, [True])
+        self.accept("r-up", self.setCamera, [False])
 
-        base.disableMouse() # Disable mouse-based camera control
-        # place the camera
+    def setCamera(self, spin):
+        self.spin = spin
+        
+    def spinCamera(self, task):
+        if self.spin == True:
+            self.cameraSpinCount  += 1
+            count = self.cameraSpinCount
+            angleDegrees = count
+            angleRadians =  angleDegrees * (pi/ 180)
+            camera.setPos(12*cos(-pi/2+angleRadians),
+                          12*sin(-pi/2+angleRadians), 25)
+            camera.setHpr(angleDegrees,-65,0)
+        return Task.cont
+        
+    def initialize(self):
+        self.title = OnscreenText(text = "KAI KANG: BALL IN MAZE",
+                                  style = 1, fg=(1,1,1,1),
+                                  pos=(0.7,-0.95),scale= .07)
+        base.disableMouse()
         camera.setPosHpr(0,-12,25,0,-65,0)
+        self.spin = False
+        self.cameraSpinCount = 0
         self.jerk = (0,0,0)
-        # load the maze model and reparent it to the topmost node
-        #self.MAZE = load_model("groupegg.egg")
+        self.loadLabyrinth()
+        self.keyControl()
+        self.loadPokemonLevel1()
+        self.light()
+        self.loadBall()
+
+    def loadLabyrinth(self):
         self.MAZE = load_model("3.egg")
-        #self.MAZE.flattenLight()
         self.MAZE.reparentTo(render)
         self.MAZE.setPos(0,0,0)
         self.MAZE.setHpr(90,0,0)
-        #self.MAZE.place()
-        self.pikachu = load_model("Groudon.egg")
-        self.pikachu = load_model("P2_Pikachu.egg")
-        self.pikachu.reparentTo(render)
-        self.pikachu.setScale(0.1)
-    
-        #self.pikachu.setTexture(self.pika_tex,1)
-        #self.pikachu.setPos(endPos)
-        # check the egg file <Collide>
-        #self.walls = self.maze.find("**/wall_collide")
-        self.WALLS = self.MAZE.find("**/Wall.004")
 
+    def loadPokemonLevel1(self):
+        self.pikachu = load_model("pikachu.egg")
+        self.pikachu.reparentTo(render)
+        self.pikachu.setScale(0.3)
+        endPos = self.MAZE.find("**/end").getPos()
+        self.pikachu.setPos(endPos) 
+
+    def light(self):
         ambientLight = AmbientLight("ambientLight")
         ambientLight.setColor(Vec4(.3, .3, .3, 1))
         directionalLight = DirectionalLight("directionalLight")
@@ -80,22 +102,7 @@ class Labryn(DirectObject):
         render.setLight(render.attachNewNode(ambientLight))
         render.setLight(render.attachNewNode(directionalLight))
 
-        # collision with wall
-        #self.walls.node().setIntoCollideMask(BitMask32.bit(0))
-        self.WALLS.node().setIntoCollideMask(BitMask32.bit(0))
-        #self.WALLS.show()
-        # holes. the triggers that cause you to lose the game
-        self.loseTriggers = []
-
-        # collision with the ground. different bit mask
-        #self.mazeGround = self.maze.find("**/ground_collide")
-        #self.mazeGround.node().setIntoCollideMask(BitMask32.bit(1))
-        self.MAZEGROUND = self.MAZE.find("**/Cube.004")
-        self.MAZEGROUND.node().setIntoCollideMask(BitMask32.bit(1))
-                                         
-        # load the ball and attach it to the scene.
-        # it is on a dummy node so that we can rotate the ball
-        # without rotating the ray that will be attached to it
+    def loadBall(self):
         self.ballRoot = render.attachNewNode("ballRoot")
         self.ball = load_model("ball")
         self.ball.reparentTo(self.ballRoot)
@@ -117,8 +124,36 @@ class Labryn(DirectObject):
         self.ballGroundCol.addSolid(self.ballGroundRay)
         self.ballGroundCol.setFromCollideMask(BitMask32.bit(1))
         self.ballGroundCol.setIntoCollideMask(BitMask32.allOff())
-
         self.ballGroundColNp = self.ballRoot.attachNewNode(self.ballGroundCol)
+        
+        # light
+        ambientLight = AmbientLight("ambientLight")
+        ambientLight.setColor(Vec4(.55, .55, .55, 1))
+        directionalLight = DirectionalLight("directionalLight")
+        directionalLight.setDirection(Vec3(0,0,-1))
+        directionalLight.setColor(Vec4(0.375,0.375,0.375,1))
+        directionalLight.setSpecularColor(Vec4(1,1,1,1))
+        self.ballRoot.setLight(render.attachNewNode(ambientLight))
+        self.ballRoot.setLight(render.attachNewNode(directionalLight))
+        # material to the ball
+        m = Material()
+        m.setSpecular(Vec4(1,1,1,1))
+        m.setShininess(96)
+        self.ball.setMaterial(m,1)
+
+    def __init__(self):
+        self.initialize()
+        self.WALLS = self.MAZE.find("**/Wall.004")
+        self.WALLS.node().setIntoCollideMask(BitMask32.bit(0))
+        # collision with the ground. different bit mask
+        #self.mazeGround = self.maze.find("**/ground_collide")
+        #self.mazeGround.node().setIntoCollideMask(BitMask32.bit(1))
+        self.MAZEGROUND = self.MAZE.find("**/Cube.004")
+        self.MAZEGROUND.node().setIntoCollideMask(BitMask32.bit(1))
+                                         
+        # load the ball and attach it to the scene.
+        # it is on a dummy node so that we can rotate the ball
+        # without rotating the ray that will be attached to it
 
         # CollisionTraversers calculate collisions
         self.cTrav = CollisionTraverser()
@@ -131,31 +166,38 @@ class Labryn(DirectObject):
         # maximum nodes per traverser: 32
         self.cTrav.addCollider(self.ballSphere,self.cHandler)
         self.cTrav.addCollider(self.ballGroundColNp,self.cHandler)
-        
         # collision traversers have a built-in tool to visualize collisons
         # self.cTrav.showCollisions(render)
-
-        # Lighting for the ball
-        ambientLight = AmbientLight("ambientLight")
-        ambientLight.setColor(Vec4(.55, .55, .55, 1))
-        directionalLight = DirectionalLight("directionalLight")
-        directionalLight.setDirection(Vec3(0,0,-1))
-        directionalLight.setColor(Vec4(0.375,0.375,0.375,1))
-        directionalLight.setSpecularColor(Vec4(1,1,1,1))
-        self.ballRoot.setLight(render.attachNewNode(ambientLight))
-        self.ballRoot.setLight(render.attachNewNode(directionalLight))
-        #self.ballGroundColNp.show()
-        # adding a specular highlight to the ball to make it shiny
-        m = Material()
-        m.setSpecular(Vec4(1,1,1,1))
-        m.setShininess(96)
-        self.ball.setMaterial(m,1)
-
         self.start()
 
+    def pokemonMove(self, pokemon, direction):
+        speed =  0.05
+        if direction == 'l':
+            newX = pokemon.getX() - speed
+            pokemon.setX(newX)
+        if direction == 'r':
+            newX = pokemon.getX() + speed
+            pokemon.setX(newX)
+        if direction == 'u':
+            newY = pokemon.getY() + speed
+            pokemon.setY(newY)
+        if direction == 'd':
+            newY = pokemon.getY() - speed
+            pokemon.setY(newY)
+        
+    def whereToGo(self, task):
+        # this returns the direction pokemon should go
+        # tell MAZE pokemon and ball's board position
+        MAZE.setPokeCoord(self.pikachu.getX(), self.pikachu.getY())
+        MAZE.setBallCoord(self.ballRoot.getX(), self.ballRoot.getY())
+        # find out which direction to go
+        direction = MAZE.getDir()
+        self.pokemonMove(self.pikachu,direction)
+        return Task.cont
+        
     def start(self):
         # maze model has a locator in it
-        self.ballRoot.show()
+        #self.ballRoot.show()
         startPos = self.MAZE.find("**/start").getPos()
         self.ballRoot.setPos(startPos) # set the ball in the pos
         self.ballV = Vec3(0,0,0) # initial velocity
@@ -167,11 +209,13 @@ class Labryn(DirectObject):
 
         # create the movement task, make sure its not already running
         taskMgr.remove("rollTask")
+        taskMgr.add(self.spinCamera, "spinCamera")
+        taskMgr.add(self.whereToGo, "whereToGo")
         self.mainLoop = taskMgr.add(self.rollTask, "rollTask")
         self.mainLoop.last = 0
 
     def moveBall(self,direction):
-        jerk = 0.05
+        jerk = 0.08
         if direction == "up":
             self.jerk = Vec3(0,jerk,0)
         elif direction == "down":
@@ -234,17 +278,7 @@ class Labryn(DirectObject):
         for i in range(self.cHandler.getNumEntries()):
             entry = self.cHandler.getEntry(i)
             name = entry.getIntoNode().getName()
-            """
-            if   name == "wall_collide":   self.wallCollideHandler(entry)
-            elif name == "ground_collide": self.groundCollideHandler(entry)
-            elif name == "loseTrigger":    self.lostGame(entry)
-            elif name == "Wall.003":
-                print entry.getSurfaceNormal(render)
-                self.wallCollideHandler(entry)
-            elif name=="Cube.003":
-                self.wallCollideHandler(entry)
-            #elif name == "Wall": self.wallCollideHandler(entry)
-            """
+       
             if name == "Wall.004":
                 self.wallCollideHandler(entry)
             elif name=="Cube.004":
@@ -269,20 +303,6 @@ class Labryn(DirectObject):
 
         return Task.cont # continue the task
 
-    def lostGame(self, entry):
-        # the center of the ball should move to the collision point
-        # to be in the hole
-        toPos = entry.getInteriorPoint(render)
-        taskMgr.remove('rollTask') # stop the maze task
-        Sequence(
-            Parallel(
-                LerpFunc(self.ballRoot.setX, fromData = self.ballRoot.getX(),
-                         toData = toPos.getX(), duration = .1),
-                LerpFunc(self.ballRoot.setY, fromData = self.ballRoot.getY(),
-                         toData = toPos.getY(), duration = .1),
-                LerpFunc(self.ballRoot.setZ, fromData = self.ballRoot.getZ(),
-                         toData = self.ballRoot.getZ() - .9, duration = .2)),
-            Wait(1),
-            Func(self.start)).start()
+
 w = Labryn()
 run()
