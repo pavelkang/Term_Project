@@ -1,0 +1,57 @@
+* Project Proposal
+  My project is a 3D game "Pokemon Ball." Basically, it has three modes. In
+  order of importance, the first is the adventure, or the single player mode,
+  where player play against computer. Player uses arrow keys to control a pokeball
+  in a maze in attempt to capture a pokemon which is running away from the ball.
+  Within the maze, there will be other pokemons trying to stop the ball. And you
+  can use your pokemons' moves to attack those pokemons. I have completed 20%-30% of 
+  this part. So far, I have created my own collidable 3d maze and makes it completely 
+  work. I have these tasks to accomplish: 1. make pokemon walk on my maze 2. make other
+  pokemons who are trying to stop you (static, particle effects to represent moves) 3.
+  user can use moves 4. AI for the pokemon
+  The second is the roam mode, which is a first-person camera view of all captured
+  pokemons in a garden. I have completed 90 % of this.
+  The third is multiplayer mode. If I can finish before the DDL, I will work on that 
+  with my mentor Chris Barker.
+* Technology Demonstrations
+  In the files I submitted, roam.py and ball.py demonstrate my competency with Panda. 
+  (I also have created my own models either using Blender or directly modifying .egg
+  as text files.)
+* Competitive Analysis
+  There are two games in market that are similar to this one.
+  1. Pokemon RPG
+     This is the all-time best seller game console game. It has the best story
+     line, characters, gaming mechanics. However, the only problem is that, 
+     since it is a rpg, it is slow-pace and can sometimes bore the player.
+     That is why I want to make it an action game. Therefore, players can enjoy
+     the adorable pokemons and fast-pace, exciting (hopefully) game at the same
+     time.
+     The reason why Pokemon can be so successful is certainly not its graphics,
+     but the fact that you are forever in search of more pokemons and trying to
+     make them your own. So I just decided to make the "capture pokemon" theme
+     more straightforward. You control the ball to chase your pokemon.
+
+  2. Hamster Ball
+     This is a very well-designed, relaxing game. It is 3D. You control the ball
+     in which there is a hamster all the way to the destination. This game can
+     be really addictable. The reason is that it is really interesting to contr-
+     ol 3D objects on computer screen. And since the ball would just be a sphere,
+     the maze is the union of multiple boxes, and I have found pokemon 3d models
+     online, I decided to put the idea into practice. Hamster Ball also has an
+     obvious disadvantage. It has no story line. So there is really no reason
+     for players to keep playing that game. Maybe playing for five minutes dur-
+     ing break time is a good idea, but players just won't become fully engaged.
+     That's why I want to combine Pokemon's rich background with Hamster Ball's
+     brilliant gaming experience.
+
+* Storyboard
+  Hand-drawn pictures.
+
+* Code Artifacts
+  In the .zip file I submmitted.
+  Or github.com/pavelkang/Term_Project/
+
+* Timesheet
+  
+
+  

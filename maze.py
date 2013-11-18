@@ -22,7 +22,7 @@ _COL_LABEL2 = (-8.3, -7.2, -6.3, -4.5, -3.3, -2.9, -1.5,
 _DIR = {'l':(0,-1), 'r':(0,1), 'u':(-1,0), 'd':(1,0)}
 
 def coordToPos(number, sequence):
-    
+    pass
 
 
 def findClosest(number, sequence):
@@ -80,7 +80,7 @@ class Maze(object):
     
     def getDir(self):
         legals = self.getLegalDirection()
-        dirs = AI.AI0OppositeDirection(self.ballY, self.ballX, self.pokeY,
+        dirs = AI.AI0_OppositeDirection(self.ballY, self.ballX, self.pokeY,
                                  self.pokeX)
         inter = set(legals).intersection(set(dirs))
         print "dirs", dirs

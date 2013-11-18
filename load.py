@@ -9,7 +9,7 @@ from panda3d.core import *
 import os
 
 def load_model(name):
-    filePath = os.path.join('..','data','models',name)
+    filePath = os.path.join('..','google_drive','ball','data','models',name)
     try:
         file = loader.loadModel(filePath)
     except:
@@ -17,7 +17,7 @@ def load_model(name):
     return file
 
 def load_tex(name):
-    filePath = os.path.join('..','data','img',name)
+    filePath = os.path.join('..','google_drive','ball','data','img',name)
     try:
         file = loader.loadTexture(filePath)
     except:
@@ -25,7 +25,7 @@ def load_tex(name):
     return file
 
 def load_sound(name):
-    filePath = os.path.join('..','data','sound',name)
+    filePath = os.path.join('google_drive','ball','sound',name)
     try:
         file = loader.loadSfx(filePath)
     except:
@@ -33,7 +33,7 @@ def load_sound(name):
     return file
 
 def load_bgmusic(name):
-    filePath = os.path.join('..','data','bgmusic',name)
+    filePath = os.path.join('..','google_drive','ball','bgmusic',name)
     try:
         file = loader.loadSfx(filePath)
     except:
