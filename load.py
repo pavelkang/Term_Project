@@ -25,7 +25,7 @@ def load_tex(name):
     return file
 
 def load_sound(name):
-    filePath = os.path.join('google_drive','ball','sound',name)
+    filePath = os.path.join('..','google_drive','ball','data','sound',name)
     try:
         file = loader.loadSfx(filePath)
     except:

@@ -55,15 +55,15 @@ class World(DirectObject):
         self.spaceSkyBox.setPos(0,0,-200)
         self.spaceSkyBox.setHpr(0,0,0)
         ralphStartPos = self.environ.find("**/start_point").getPos()
-        self.ralph = Actor("../data/models/ralph",
-                                 {"run":"../data/models/ralph-run",
-                                  "walk":"../data/models/ralph-walk"})
+        self.ralph = Actor("../google_drive/ball/data/models/ralph",
+                                 {"run":"../google_drive/ball/data/models/ralph-run",
+                                  "walk":"../google_drive/ball/data/models/ralph-walk"})
         self.ralph.reparentTo(render)
         self.ralph.setScale(.2)
         self.ralph.setPos(ralphStartPos)
-        self.ralph.hide()
+        #self.ralph.hide()
 
-        self.pikachu = load_model("P2_Pikachu.egg")
+        self.pikachu = load_model("pikachu.egg")
         self.pikachu.reparentTo(render)
         self.pikachu.setScale(1)
         self.pikachu.setPos(ralphStartPos)

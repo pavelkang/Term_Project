@@ -19,11 +19,10 @@ _COL_LABEL = (-8.3, -7.2, -6.3, -4.5, -3.3, -2.4, -1.5,
 #_COL_LABEL2 = [i-0.5 for i in _COL_LABEL]
 _COL_LABEL2 = (-8.3, -7.2, -6.3, -4.5, -3.3, -2.9, -1.5,
                0, 1.3, 2.3, 3.5, 4.1, 6, 7.2, 8.3)
-_DIR = {'l':(0,-1), 'r':(0,1), 'u':(-1,0), 'd':(1,0)}
+_DIR = {'l':(0,-1), 'r':(0,1), 'u':(-1,0), 'd':(1,0), 's':(0,0)}
 
 def coordToPos(number, sequence):
     pass
-
 
 def findClosest(number, sequence):
     # find the closest entry in a sorted sequence with number
@@ -67,28 +66,21 @@ class Maze(object):
                 # out of board
                 pass
             else:
-                # when ball has blocked one direction
-                if row == ballRow: # in the same row
-                    if dcol * (ballCol-col) > 0: # same direction
-                        pass
-                if col == ballCol:
-                    if drow * (ballRow-row) > 0:
-                        pass
-                if self.board[row+drow][col+dcol] == 1:
+                if self.board[row+drow][col+dcol] == 1: # not wall
                     legals.append(dir)
+        print legals
         return legals
-    
-    def getDir(self):
+
+    def getDecision(self):
+        # get decision from AI
+        # get all legal moves
         legals = self.getLegalDirection()
-        dirs = AI.AI0_OppositeDirection(self.ballY, self.ballX, self.pokeY,
-                                 self.pokeX)
-        inter = set(legals).intersection(set(dirs))
-        print "dirs", dirs
-        print "pokeRow", self.pokeRow, self.pokeCol
-        
-        if len(inter) != 0:
-            result = inter.pop()
-        else:
-            result = legals[0]
-        return result
+        decision = AI.AI0_OppositeDirection(self.ballY, self.ballX,
+                                            self.pokeY, self.pokeX,
+                                            self.ballRow, self.ballCol,
+                                            self.pokeRow, self.pokeCol,
+                                            legals)
+        print "decision", decision
+        return decision
+    
             

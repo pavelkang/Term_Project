@@ -14,6 +14,8 @@ from panda3d.core import TextNode
 from panda3d.core import Vec3,Vec4,BitMask32
 # GUI
 from direct.gui.OnscreenText import OnscreenText
+from direct.gui.OnscreenImage import OnscreenImage
+from panda3d.core import TransparencyAttrib # enable transparency
 # Direct Object
 from direct.showbase.DirectObject import DirectObject
 # Interval
@@ -35,18 +37,29 @@ MAZE = maze.Maze()
 ACCELERATION = 70
 MAX_SPEED = 4
 MAX_SPEED_SQ = MAX_SPEED ** 2
-
+_JERK = 0.08
+_SPEED = 0.05
 # upward vector 
 UP = Vec3(0,0,1)
 
+
+
+_BGIMG = "../google_drive/ball/data/img/ground.jpg"
+
+
 class Labryn(DirectObject):
+    
     def keyControl(self):
         # get user input
         self.accept("escape", sys.exit) # ESC to quit
-        self.accept("arrow_up",self.moveBall,["up"])
-        self.accept("arrow_down",self.moveBall,["down"])
-        self.accept("arrow_left",self.moveBall,["left"])
-        self.accept("arrow_right",self.moveBall,["right"])
+        self.accept("arrow_up",self.moveBallWrapper,["u"])
+        self.accept("arrow_down",self.moveBallWrapper,["d"])
+        self.accept("arrow_left",self.moveBallWrapper,["l"])
+        self.accept("arrow_right",self.moveBallWrapper,["r"])
+        self.accept("arrow_up_up",self.moveBallWrapper,[False])
+        self.accept("arrow_down_up",self.moveBallWrapper,[False])
+        self.accept("arrow_left_up",self.moveBallWrapper,[False])
+        self.accept("arrow_right_up",self.moveBallWrapper,[False])
         self.accept("r", self.setCamera, [True])
         self.accept("r-up", self.setCamera, [False])
 
@@ -65,11 +78,14 @@ class Labryn(DirectObject):
         return Task.cont
         
     def initialize(self):
-        self.title = OnscreenText(text = "KAI KANG: BALL IN MAZE",
-                                  style = 1, fg=(1,1,1,1),
-                                  pos=(0.7,-0.95),scale= .07)
+        self.loadBackground(_BGIMG)
+        self.loadMyPokemon()
         base.disableMouse()
         camera.setPosHpr(0,-12,25,0,-65,0)
+        self.arrowKeyPressed = False
+        self.pokemonDirection = None
+        # direction the ball is going
+        self.jerkDirection = None
         self.spin = False
         self.cameraSpinCount = 0
         self.jerk = (0,0,0)
@@ -78,7 +94,18 @@ class Labryn(DirectObject):
         self.loadPokemonLevel1()
         self.light()
         self.loadBall()
+        
+    def loadBackground(self, imagePath):
+        self.background = OnscreenImage(parent=render2dp, image=imagePath)
+        base.cam2dp.node().getDisplayRegion(0).setSort(-20)
 
+    def loadMyPokemon(self, pokes=['caterpie', 'charmander', 'geodude']):
+        path = r"../google_drive/ball/data/img/myPoke"
+        pokePath = path + r"/%s" %(pokes[0]) + r".png"
+        poke = OnscreenImage(parent=aspect2d, image=pokePath, pos=(1,0,-0.8),
+                             scale=(0.16,1,0.12))
+        poke.setTransparency(TransparencyAttrib.MAlpha)
+        
     def loadLabyrinth(self):
         self.MAZE = load_model("3.egg")
         self.MAZE.reparentTo(render)
@@ -170,20 +197,32 @@ class Labryn(DirectObject):
         # self.cTrav.showCollisions(render)
         self.start()
 
+    def pokemonTurn(self, pokemon, direction):
+        if direction  == 'l' and self.pokemonDirection != 'l':
+            pokemon.setH(-90)
+        if direction  == 'r' and self.pokemonDirection != 'r':
+            pokemon.setH(90)
+        if direction  == 'd' and self.pokemonDirection != 'd':
+            pokemon.setH(0)
+        if direction  == 'u' and self.pokemonDirection != 'u':
+            pokemon.setH(180)
+                        
     def pokemonMove(self, pokemon, direction):
-        speed =  0.05
+        self.pokemonTurn(pokemon, direction)
         if direction == 'l':
-            newX = pokemon.getX() - speed
+            newX = pokemon.getX() - _SPEED
             pokemon.setX(newX)
-        if direction == 'r':
-            newX = pokemon.getX() + speed
+        elif direction == 'r':
+            newX = pokemon.getX() + _SPEED
             pokemon.setX(newX)
-        if direction == 'u':
-            newY = pokemon.getY() + speed
+        elif direction == 'u':
+            newY = pokemon.getY() + _SPEED
             pokemon.setY(newY)
-        if direction == 'd':
-            newY = pokemon.getY() - speed
+        elif direction == 'd':
+            newY = pokemon.getY() - _SPEED
             pokemon.setY(newY)
+        elif direction == "s": # stop
+            pass
         
     def whereToGo(self, task):
         # this returns the direction pokemon should go
@@ -191,13 +230,17 @@ class Labryn(DirectObject):
         MAZE.setPokeCoord(self.pikachu.getX(), self.pikachu.getY())
         MAZE.setBallCoord(self.ballRoot.getX(), self.ballRoot.getY())
         # find out which direction to go
-        direction = MAZE.getDir()
+        direction = MAZE.getDecision()
         self.pokemonMove(self.pikachu,direction)
         return Task.cont
-        
+
+    def getInformation(self):
+        # get information on the board
+        pass
+    
     def start(self):
         # maze model has a locator in it
-        #self.ballRoot.show()
+        # self.ballRoot.show()
         startPos = self.MAZE.find("**/start").getPos()
         self.ballRoot.setPos(startPos) # set the ball in the pos
         self.ballV = Vec3(0,0,0) # initial velocity
@@ -211,19 +254,29 @@ class Labryn(DirectObject):
         taskMgr.remove("rollTask")
         taskMgr.add(self.spinCamera, "spinCamera")
         taskMgr.add(self.whereToGo, "whereToGo")
+        taskMgr.add(lambda task: self.moveBall(task, self.jerkDirection),
+                    "moveBall")
         self.mainLoop = taskMgr.add(self.rollTask, "rollTask")
         self.mainLoop.last = 0
 
-    def moveBall(self,direction):
-        jerk = 0.08
-        if direction == "up":
-            self.jerk = Vec3(0,jerk,0)
-        elif direction == "down":
-            self.jerk = Vec3(0,-jerk,0)
-        elif direction == "left":
-            self.jerk = Vec3(-jerk,0,0)
-        elif direction == "right":
-            self.jerk = Vec3(jerk,0,0)
+    def moveBallWrapper(self, direction):
+        if direction == False:
+            self.arrowKeyPressed = False
+        else:
+            self.arrowKeyPressed = True
+            self.jerkDirection = direction
+        
+    def moveBall(self, task, direction):
+        if self.arrowKeyPressed == True:
+            if direction == "u":
+                self.jerk = Vec3(0,_JERK,0)
+            elif direction == "d":
+                self.jerk = Vec3(0,-_JERK,0)
+            elif direction == "l":
+                self.jerk = Vec3(-_JERK,0,0)
+            elif direction == "r":
+                self.jerk = Vec3(_JERK,0,0)
+        return Task.cont
         
     # collision between ray and ground
     # info about the interaction is passed in colEntry
@@ -240,7 +293,6 @@ class Labryn(DirectObject):
     # collision between the ball and a wall
     def wallCollideHandler(self,colEntry):
         # some vectors needed to do the calculation
-
         norm = colEntry.getSurfaceNormal(render) * -1
         norm.normalize()
         curSpeed = self.ballV.length()
@@ -264,6 +316,7 @@ class Labryn(DirectObject):
                     colEntry.getInteriorPoint(render))
             newPos = self.ballRoot.getPos() + disp
             self.ballRoot.setPos(newPos)
+            
     def rollTask(self,task):
         # standard technique for finding the amount of time
         # since the last frame
