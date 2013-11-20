@@ -29,7 +29,7 @@ import sys
 from math import pi, sin, cos
 #self written module
 from load import *
-
+import TwoDInterface as Interface
 import maze
 
 MAZE = maze.Maze()
@@ -41,9 +41,7 @@ _JERK = 0.08
 _SPEED = 0.05
 # upward vector 
 UP = Vec3(0,0,1)
-
-
-
+_FLOOR = 1
 _BGIMG = "../google_drive/ball/data/img/ground.jpg"
 
 
@@ -52,59 +50,115 @@ class Labryn(DirectObject):
     def keyControl(self):
         # get user input
         self.accept("escape", sys.exit) # ESC to quit
-        self.accept("arrow_up",self.moveBallWrapper,["u"])
-        self.accept("arrow_down",self.moveBallWrapper,["d"])
-        self.accept("arrow_left",self.moveBallWrapper,["l"])
-        self.accept("arrow_right",self.moveBallWrapper,["r"])
-        self.accept("arrow_up_up",self.moveBallWrapper,[False])
-        self.accept("arrow_down_up",self.moveBallWrapper,[False])
-        self.accept("arrow_left_up",self.moveBallWrapper,[False])
-        self.accept("arrow_right_up",self.moveBallWrapper,[False])
-        self.accept("r", self.setCamera, [True])
-        self.accept("r-up", self.setCamera, [False])
 
+        self.accept("w",self.moveBallWrapper,["u"])
+        self.accept("s",self.moveBallWrapper,["d"])
+        self.accept("a",self.moveBallWrapper,["l"])
+        self.accept("d",self.moveBallWrapper,["r"])
+        self.accept("w-up",self.moveBallWrapper,[False])
+        self.accept("s-up",self.moveBallWrapper,[False])
+        self.accept("a-up",self.moveBallWrapper,[False])
+        self.accept("d-up",self.moveBallWrapper,[False])
+        self.accept("mouse1-up", self.placeRock)
+        self.accept("e", self.setCamera, [1])
+        self.accept("e-up", self.setCamera, [0])
+        self.accept("q", self.setCamera, [2])
+        self.accept("q-up", self.setCamera, [0])
+        self.accept("z", self.setCamera, [3])
+        self.accept("z-up", self.setCamera, [0])
+        self.accept("c", self.setCamera, [4])
+        self.accept("c-up", self.setCamera, [0])
+
+        
     def setCamera(self, spin):
         self.spin = spin
         
     def spinCamera(self, task):
-        if self.spin == True:
+        if self.spin == 1: # spin counter-clockwise
             self.cameraSpinCount  += 1
-            count = self.cameraSpinCount
-            angleDegrees = count
+            dR = self.cameraZoomCount * 0.1
+            new_R = 12 - dR
+            angleDegrees = self.cameraSpinCount
             angleRadians =  angleDegrees * (pi/ 180)
-            camera.setPos(12*cos(-pi/2+angleRadians),
-                          12*sin(-pi/2+angleRadians), 25)
+            camera.setPos(new_R*cos(-pi/2+angleRadians),
+                          new_R*sin(-pi/2+angleRadians),
+                          (25.0/12)*new_R)
             camera.setHpr(angleDegrees,-65,0)
+        elif self.spin == 2: # spin clockwise
+            self.cameraSpinCount  -= 1
+            dR = self.cameraZoomCount * 0.1
+            new_R = 12 - dR
+            angleDegrees = self.cameraSpinCount
+            angleRadians =  angleDegrees * (pi/ 180)
+            camera.setPos(new_R*cos(-pi/2+angleRadians),
+                          new_R*sin(-pi/2+angleRadians),
+                          (25.0/12)*new_R)
+            camera.setHpr(angleDegrees,-65,0)
+        elif self.spin == 3: # ZOOM IN not spin
+            self.cameraZoomCount += 1
+            deltaR = self.cameraZoomCount * 0.1
+            angleDegrees = self.cameraSpinCount
+            angleRadians =  angleDegrees * (pi/ 180)
+            new_R = 12-deltaR
+            camera.setPos(new_R*cos(-pi/2+angleRadians),
+                          new_R*sin(-pi/2+angleRadians),
+                          (25.0/12)*new_R)
+        elif self.spin == 4: # ZOOM OUT
+            self.cameraZoomCount -= 1
+            deltaR = self.cameraZoomCount * 0.1
+            angleDegrees = self.cameraSpinCount
+            angleRadians =  angleDegrees * (pi/ 180)
+            new_R = 12-deltaR
+            camera.setPos(new_R*cos(-pi/2+angleRadians),
+                          new_R*sin(-pi/2+angleRadians),
+                          (25.0/12)*new_R)
         return Task.cont
+
+    def checkMouse(self, task):
+        if base.mouseWatcherNode.hasMouse():
+            self.mouseX=base.mouseWatcherNode.getMouseX()
+            self.mouseY=base.mouseWatcherNode.getMouseY()
+            print self.mouseX, self.mouseY
+        return Task.cont
+
+    def placeRock(self):
+        if self.mouseX != None and self.mouseY != None:
+            print "AAAAAAAAAAA"
+            if self.rock != None:
+                self.rock.removeNode()
+            self.rock = self.loadRock()
+            self.rock.setPos(self.mouseX*9.3, self.mouseY*7.5, _FLOOR)
+
+    def loadRareCandy(self):
+        candy = load_model("Gold.egg")
+        return candy
+
+    def placeRareCandy(self):
+        self.candy = self.loadRareCandy()
+        self.candy.reparentTo(render)
+        self.candy.setPos(4,4,_FLOOR)
+        self.candy.setScale(0.3)
         
     def initialize(self):
-        self.loadBackground(_BGIMG)
-        self.loadMyPokemon()
+        Interface.loadBackground(self,_BGIMG)
+        self.myPokes = Interface.loadMyPokemon_Dark()
+        self.placeRareCandy()
         base.disableMouse()
         camera.setPosHpr(0,-12,25,0,-65,0)
+        self.rock = None
         self.arrowKeyPressed = False
-        self.pokemonDirection = None
+        self.pokemonDirection = 'd'
+        self.mouseX, self.mouseY = None, None
         # direction the ball is going
         self.jerkDirection = None
-        self.spin = False
-        self.cameraSpinCount = 0
+        self.spin = 0
+        self.cameraSpinCount, self.cameraZoomCount = 0, 0
         self.jerk = (0,0,0)
         self.loadLabyrinth()
         self.keyControl()
         self.loadPokemonLevel1()
         self.light()
         self.loadBall()
-        
-    def loadBackground(self, imagePath):
-        self.background = OnscreenImage(parent=render2dp, image=imagePath)
-        base.cam2dp.node().getDisplayRegion(0).setSort(-20)
-
-    def loadMyPokemon(self, pokes=['caterpie', 'charmander', 'geodude']):
-        path = r"../google_drive/ball/data/img/myPoke"
-        pokePath = path + r"/%s" %(pokes[0]) + r".png"
-        poke = OnscreenImage(parent=aspect2d, image=pokePath, pos=(1,0,-0.8),
-                             scale=(0.16,1,0.12))
-        poke.setTransparency(TransparencyAttrib.MAlpha)
         
     def loadLabyrinth(self):
         self.MAZE = load_model("3.egg")
@@ -119,6 +173,12 @@ class Labryn(DirectObject):
         endPos = self.MAZE.find("**/end").getPos()
         self.pikachu.setPos(endPos) 
 
+    def loadRock(self):
+        rock = load_model("rock.egg")
+        rock.reparentTo(render)
+        rock.setPos(0,0,1)
+        return rock
+        
     def light(self):
         ambientLight = AmbientLight("ambientLight")
         ambientLight.setColor(Vec4(.3, .3, .3, 1))
@@ -199,12 +259,16 @@ class Labryn(DirectObject):
 
     def pokemonTurn(self, pokemon, direction):
         if direction  == 'l' and self.pokemonDirection != 'l':
+            self.pokemonDirection = 'l'
             pokemon.setH(-90)
         if direction  == 'r' and self.pokemonDirection != 'r':
+            self.pokemonDirection = 'r'
             pokemon.setH(90)
         if direction  == 'd' and self.pokemonDirection != 'd':
+            self.pokemonDirection = 'd'
             pokemon.setH(0)
         if direction  == 'u' and self.pokemonDirection != 'u':
+            self.pokemonDirection = 'u'
             pokemon.setH(180)
                         
     def pokemonMove(self, pokemon, direction):
@@ -227,16 +291,18 @@ class Labryn(DirectObject):
     def whereToGo(self, task):
         # this returns the direction pokemon should go
         # tell MAZE pokemon and ball's board position
-        MAZE.setPokeCoord(self.pikachu.getX(), self.pikachu.getY())
+        MAZE.setPokeCoord(self.pikachu.getX(), self.pikachu.getY(),
+                          self.pokemonDirection)
         MAZE.setBallCoord(self.ballRoot.getX(), self.ballRoot.getY())
         # find out which direction to go
         direction = MAZE.getDecision()
         self.pokemonMove(self.pikachu,direction)
         return Task.cont
 
-    def getInformation(self):
+    def getInformation(self, task):
         # get information on the board
-        pass
+        # TODO
+        return Task.cont
     
     def start(self):
         # maze model has a locator in it
@@ -252,6 +318,8 @@ class Labryn(DirectObject):
 
         # create the movement task, make sure its not already running
         taskMgr.remove("rollTask")
+        taskMgr.add(self.getInformation, "getInformation")
+        taskMgr.add(self.checkMouse, "checkMouse")
         taskMgr.add(self.spinCamera, "spinCamera")
         taskMgr.add(self.whereToGo, "whereToGo")
         taskMgr.add(lambda task: self.moveBall(task, self.jerkDirection),
@@ -277,6 +345,7 @@ class Labryn(DirectObject):
             elif direction == "r":
                 self.jerk = Vec3(_JERK,0,0)
         return Task.cont
+
         
     # collision between ray and ground
     # info about the interaction is passed in colEntry

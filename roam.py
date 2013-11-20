@@ -1,3 +1,6 @@
+# go fullscreen
+#from panda3d.core import loadPrcFileData
+#loadPrcFileData('', 'fullscreen 1')
 import panda3d
 import direct.directbase.DirectStart
 from panda3d.core import CollisionTraverser,CollisionNode
@@ -61,7 +64,7 @@ class World(DirectObject):
         self.ralph.reparentTo(render)
         self.ralph.setScale(.2)
         self.ralph.setPos(ralphStartPos)
-        #self.ralph.hide()
+        self.ralph.hide()
 
         self.pikachu = load_model("pikachu.egg")
         self.pikachu.reparentTo(render)
