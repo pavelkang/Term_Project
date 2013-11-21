@@ -113,5 +113,12 @@
      
 ** Sun Nov 17 00:38:04 EST 2013
    - coordinates: z -> top, y away, x right
-   - 
+
+** Thu Nov 21 09:54:32 EST 2013
+   - fully functional camera ( zoom in/out, spin clockwise/counter-clockwise, pan)   - 1 hour
+   - place rare candy ()   - 1.5 hour
+   - better control  - 0.5 hour
+   - 2d interface, background -  0.5 hour
+   - make pokemons moves (particle) - 4.5 hour
+   - music, 3d model (2 hour)
      
