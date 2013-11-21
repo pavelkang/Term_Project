@@ -101,12 +101,24 @@ class Labryn(DirectObject):
             self.rock = Model_Load.loadRock()
             self.rock.setPos(self.mouseX*9.3, self.mouseY*7.5, _FLOOR)
 
-    def placeRareCandy(self):
+    def placeRareCandy(self, task):
+        if int(task.time) % 4 == 1 and self.candyOnBoard:
+            self.candy.hide()
+            self.candyOnBoard = False
+        if int(task.time) % 4 ==  0 and (self.candyOnBoard == False):
+            # every 10 seconds
+            print "AAAAAAAAAAAA"
+            self.candy.setPos(MAZE.generateCandyPos())
+            self.candy.show()
+            self.candyOnBoard = True
+        return Task.cont
+            
+    def loadRareCandy(self):
         self.candy = Model_Load.loadRareCandy()
         self.candy.reparentTo(render)
-        self.candy.setPos(4,4,_FLOOR)
-        self.candy.setScale(0.3)
-
+        self.candy.setScale(0.1)
+        self.candy.hide()
+        
     def setFocus(self, changing):
         self.changingFocus = changing
         if changing == True: # Just Pressed
@@ -132,9 +144,10 @@ class Labryn(DirectObject):
         return Task.cont
             
     def initialize(self):
-        Two_D.loadBackground(self,_BGIMG)
-        self.myPokes = Two_D.loadMyPokemon_Dark()
-        self.placeRareCandy()
+        Two_D.loadBackground(self,_BGIMG) # Background
+        self.candyOnBoard = False
+        self.myPokes = Two_D.loadMyPokemon_Dark() # my pokemons
+        self.loadRareCandy() # load rare candy
         base.disableMouse()
         self.CAM_R, self.CAM_RAD = 12, 0
         camera.setPos(_FOCUS[0],_FOCUS[1]-12,_FOCUS[2]+25)
@@ -151,7 +164,6 @@ class Labryn(DirectObject):
         self.jerk = (0,0,0)
         self.MAZE = Model_Load.loadLabyrinth()
         Control.keyControl(self)
-        #self.keyControl()
         self.loadPokemonLevel1()
         self.light()
         self.loadBall()
@@ -303,6 +315,7 @@ class Labryn(DirectObject):
         # create the movement task, make sure its not already running
         taskMgr.remove("rollTask")
         taskMgr.add(self.getInformation, "getInformation")
+        taskMgr.add(self.placeRareCandy, "placeRareCandy")
         taskMgr.add(self.checkMouse, "checkMouse")
         taskMgr.add(self.spinCamera, "spinCamera")
         taskMgr.add(self.changeFocus, "changeFocus")
@@ -390,7 +403,6 @@ class Labryn(DirectObject):
                 self.wallCollideHandler(entry)
             elif name=="Cube.004":
                 self.groundCollideHandler(entry)
-
         self.accelV += self.jerk
         # move the ball, update the velocity based on accel
         self.ballV += self.accelV * dt * ACCELERATION
@@ -406,9 +418,7 @@ class Labryn(DirectObject):
         axis = UP.cross(self.ballV)
         newRot = LRotationf(axis, 45.5 * dt * self.ballV.length())
         self.ball.setQuat(prevRot * newRot)
-
         return Task.cont # continue the task
-
 
 w = Labryn()
 run()
