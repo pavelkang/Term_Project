@@ -29,122 +29,116 @@ import sys
 from math import pi, sin, cos
 #self written module
 from load import *
-import TwoDInterface as Interface
+import TwoDInterface as Two_D
 import maze
+import Key_Control as Control
+import Model_Load
 
 MAZE = maze.Maze()
-
 ACCELERATION = 70
 MAX_SPEED = 4
 MAX_SPEED_SQ = MAX_SPEED ** 2
 _JERK = 0.08
 _SPEED = 0.05
-# upward vector 
-UP = Vec3(0,0,1)
+UP = Vec3(0,0,1) # upward vector
 _FLOOR = 1
 _BGIMG = "../google_drive/ball/data/img/ground.jpg"
-
+_FOCUS = [0,0,0]
 
 class Labryn(DirectObject):
-    
-    def keyControl(self):
-        # get user input
-        self.accept("escape", sys.exit) # ESC to quit
 
-        self.accept("w",self.moveBallWrapper,["u"])
-        self.accept("s",self.moveBallWrapper,["d"])
-        self.accept("a",self.moveBallWrapper,["l"])
-        self.accept("d",self.moveBallWrapper,["r"])
-        self.accept("w-up",self.moveBallWrapper,[False])
-        self.accept("s-up",self.moveBallWrapper,[False])
-        self.accept("a-up",self.moveBallWrapper,[False])
-        self.accept("d-up",self.moveBallWrapper,[False])
-        self.accept("mouse1-up", self.placeRock)
-        self.accept("e", self.setCamera, [1])
-        self.accept("e-up", self.setCamera, [0])
-        self.accept("q", self.setCamera, [2])
-        self.accept("q-up", self.setCamera, [0])
-        self.accept("z", self.setCamera, [3])
-        self.accept("z-up", self.setCamera, [0])
-        self.accept("c", self.setCamera, [4])
-        self.accept("c-up", self.setCamera, [0])
-
-        
     def setCamera(self, spin):
         self.spin = spin
-        
+    
     def spinCamera(self, task):
         if self.spin == 1: # spin counter-clockwise
             self.cameraSpinCount  += 1
-            dR = self.cameraZoomCount * 0.1
-            new_R = 12 - dR
             angleDegrees = self.cameraSpinCount
             angleRadians =  angleDegrees * (pi/ 180)
-            camera.setPos(new_R*cos(-pi/2+angleRadians),
-                          new_R*sin(-pi/2+angleRadians),
-                          (25.0/12)*new_R)
+            self.CAM_RAD = angleRadians
+            camera.setPos(_FOCUS[0]+self.CAM_R*cos(-pi/2+self.CAM_RAD),
+                          _FOCUS[1]+self.CAM_R*sin(-pi/2+self.CAM_RAD),
+                          (25.0/12)*self.CAM_R) 
             camera.setHpr(angleDegrees,-65,0)
         elif self.spin == 2: # spin clockwise
             self.cameraSpinCount  -= 1
-            dR = self.cameraZoomCount * 0.1
-            new_R = 12 - dR
             angleDegrees = self.cameraSpinCount
             angleRadians =  angleDegrees * (pi/ 180)
-            camera.setPos(new_R*cos(-pi/2+angleRadians),
-                          new_R*sin(-pi/2+angleRadians),
-                          (25.0/12)*new_R)
+            self.CAM_RAD = angleRadians
+            camera.setPos(_FOCUS[0]+self.CAM_R*cos(-pi/2+self.CAM_RAD),
+                          _FOCUS[1]+self.CAM_R*sin(-pi/2+self.CAM_RAD),
+                          (25.0/12)*self.CAM_R)
             camera.setHpr(angleDegrees,-65,0)
         elif self.spin == 3: # ZOOM IN not spin
             self.cameraZoomCount += 1
             deltaR = self.cameraZoomCount * 0.1
-            angleDegrees = self.cameraSpinCount
-            angleRadians =  angleDegrees * (pi/ 180)
             new_R = 12-deltaR
-            camera.setPos(new_R*cos(-pi/2+angleRadians),
-                          new_R*sin(-pi/2+angleRadians),
+            self.CAM_R = new_R
+            camera.setPos(_FOCUS[0] + self.CAM_R*cos(-pi/2+self.CAM_RAD),
+                          _FOCUS[1] + self.CAM_R*sin(-pi/2+self.CAM_RAD),
                           (25.0/12)*new_R)
         elif self.spin == 4: # ZOOM OUT
             self.cameraZoomCount -= 1
             deltaR = self.cameraZoomCount * 0.1
-            angleDegrees = self.cameraSpinCount
-            angleRadians =  angleDegrees * (pi/ 180)
             new_R = 12-deltaR
-            camera.setPos(new_R*cos(-pi/2+angleRadians),
-                          new_R*sin(-pi/2+angleRadians),
-                          (25.0/12)*new_R)
+            self.CAM_R = new_R
+            camera.setPos(_FOCUS[0] + self.CAM_R*cos(-pi/2+self.CAM_RAD),
+                          _FOCUS[1] + self.CAM_R*sin(-pi/2+self.CAM_RAD),
+                          (25.0/12)*self.CAM_R)
+                          
         return Task.cont
 
     def checkMouse(self, task):
         if base.mouseWatcherNode.hasMouse():
             self.mouseX=base.mouseWatcherNode.getMouseX()
             self.mouseY=base.mouseWatcherNode.getMouseY()
-            print self.mouseX, self.mouseY
         return Task.cont
 
     def placeRock(self):
         if self.mouseX != None and self.mouseY != None:
-            print "AAAAAAAAAAA"
             if self.rock != None:
                 self.rock.removeNode()
-            self.rock = self.loadRock()
+            self.rock = Model_Load.loadRock()
             self.rock.setPos(self.mouseX*9.3, self.mouseY*7.5, _FLOOR)
 
-    def loadRareCandy(self):
-        candy = load_model("Gold.egg")
-        return candy
-
     def placeRareCandy(self):
-        self.candy = self.loadRareCandy()
+        self.candy = Model_Load.loadRareCandy()
         self.candy.reparentTo(render)
         self.candy.setPos(4,4,_FLOOR)
         self.candy.setScale(0.3)
-        
+
+    def setFocus(self, changing):
+        self.changingFocus = changing
+        if changing == True: # Just Pressed
+            self.referenceX, self.referenceY = self.mouseX, self.mouseY
+        else: # cursor moves up
+            self.referenceX, self.referenceY = None, None
+
+    def resetView(self):
+        self.CAM_R, self.CAM_RAD = 12, 0
+        _FOCUS = [0, 0, 0]
+        camera.setPos(_FOCUS[0], _FOCUS[1]-self.CAM_R, 25)
+            
+    def changeFocus(self, task):
+        if (self.changingFocus == True and self.mouseX != None and
+            self.mouseY != None):
+            dX, dY = ((self.mouseX - self.referenceX)*0.1,
+                      (self.mouseY - self.referenceY)*0.1)
+            _FOCUS[0] += dX
+            _FOCUS[1] += dY
+            camera.setPos(_FOCUS[0] + self.CAM_R*cos(-pi/2+self.CAM_RAD),
+                          _FOCUS[1] + self.CAM_R*sin(-pi/2+self.CAM_RAD),
+                          (25.0/12)*self.CAM_R)
+        return Task.cont
+            
     def initialize(self):
-        Interface.loadBackground(self,_BGIMG)
-        self.myPokes = Interface.loadMyPokemon_Dark()
+        Two_D.loadBackground(self,_BGIMG)
+        self.myPokes = Two_D.loadMyPokemon_Dark()
         self.placeRareCandy()
         base.disableMouse()
-        camera.setPosHpr(0,-12,25,0,-65,0)
+        self.CAM_R, self.CAM_RAD = 12, 0
+        camera.setPos(_FOCUS[0],_FOCUS[1]-12,_FOCUS[2]+25)
+        camera.setHpr(0, -65, 0)
         self.rock = None
         self.arrowKeyPressed = False
         self.pokemonDirection = 'd'
@@ -152,32 +146,22 @@ class Labryn(DirectObject):
         # direction the ball is going
         self.jerkDirection = None
         self.spin = 0
+        self.changingFocus = False
         self.cameraSpinCount, self.cameraZoomCount = 0, 0
         self.jerk = (0,0,0)
-        self.loadLabyrinth()
-        self.keyControl()
+        self.MAZE = Model_Load.loadLabyrinth()
+        Control.keyControl(self)
+        #self.keyControl()
         self.loadPokemonLevel1()
         self.light()
         self.loadBall()
         
-    def loadLabyrinth(self):
-        self.MAZE = load_model("3.egg")
-        self.MAZE.reparentTo(render)
-        self.MAZE.setPos(0,0,0)
-        self.MAZE.setHpr(90,0,0)
-
     def loadPokemonLevel1(self):
         self.pikachu = load_model("pikachu.egg")
         self.pikachu.reparentTo(render)
         self.pikachu.setScale(0.3)
         endPos = self.MAZE.find("**/end").getPos()
         self.pikachu.setPos(endPos) 
-
-    def loadRock(self):
-        rock = load_model("rock.egg")
-        rock.reparentTo(render)
-        rock.setPos(0,0,1)
-        return rock
         
     def light(self):
         ambientLight = AmbientLight("ambientLight")
@@ -321,6 +305,7 @@ class Labryn(DirectObject):
         taskMgr.add(self.getInformation, "getInformation")
         taskMgr.add(self.checkMouse, "checkMouse")
         taskMgr.add(self.spinCamera, "spinCamera")
+        taskMgr.add(self.changeFocus, "changeFocus")
         taskMgr.add(self.whereToGo, "whereToGo")
         taskMgr.add(lambda task: self.moveBall(task, self.jerkDirection),
                     "moveBall")
@@ -406,7 +391,6 @@ class Labryn(DirectObject):
             elif name=="Cube.004":
                 self.groundCollideHandler(entry)
 
-        # read the mouse position and tilt the maze accordingly
         self.accelV += self.jerk
         # move the ball, update the velocity based on accel
         self.ballV += self.accelV * dt * ACCELERATION
