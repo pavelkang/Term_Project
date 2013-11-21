@@ -1,0 +1,117 @@
+* Term Project Log
+| Menu Option   | Description     | Required Module    |
+|---------------+-----------------+--------------------|
+|               |                 | <18>               |
+| Utility       | General Control | load; controller;  |
+| Single Player | Adventure Mode  |                    |
+
+
+
+
+** Oct.8 Model
+   - Load beautiful model and texturing
+     - This is the website for downloading all the 3D sources:
+      http://roestudios.co.uk/project/3d-pokemon-models/
+     - Use Blender to open *.blend. Drag texture on to the model.
+     - Use Yabee to export to *.egg
+     - Modify texture path in *.egg 
+** Oct.12 Model
+   - Load multiple models using python script
+     - wrote load.py
+     - moved programs to ball/src
+     - To modify a batch of *.egg files at the same time
+** Oct.13 Model & Pyserial
+   - Connect MSP430 with computer
+     - Use this command: sudo adduser kai dialout
+     - [ ]  Read API and understand what each hex value means
+     - [ ] Learn org-mode(latex, hyperlink, table, TODO)
+     - This is the website for Pyserial
+       http://pyserial.sourceforge.net/shortintro.html#opening-serial-ports
+** Oct.16 Maya
+   - Learn Maya 
+     - Create Nurb & Polygon
+     - Navigation (hold alt key)
+     - Transform objects
+     - Select objects (hold right key; F8)
+     - Use Channel Box to change properties
+** Oct.17 Serial Module
+   - Partially fixed the problem by calling ser.close(), time.sleep()
+** Oct.18 Particle Effects & Collisions
+*** Notes on Particles
+    - 1 renderer 2 factory 3 emitter
+    - *.ptf: text files
+    - Pool Size: max particles
+      Birth Rate: birth Interval (in seconds)
+      Litter Size: number of birth particles
+      Litter Spread: variation
+    - base.enableParticles()
+      from direct.particles.ParticleEffect import ParticleEffect
+      p = ParticleEffect()
+      p.loadConfig(filename)
+      p.start(parent=render,renderParent=render)
+      p.disable/cleanup()
+
+
+
+
+*** Notes on Collisions
+    - Add collision tags into an egg file
+    - 
+      
+** Oct.27 Roam Mode
+   - Modify The model world.egg using Text Editor (going to write a program)
+   - Better Control
+     - self.taskMgr.add(functionName) to call every frame.
+       This function returns Task.cont to continue
+       Task.cont / Task.done / Task.time / Task.frame
+       taskMgr.doMethodLater(delayTime, myFunction, 'Task Name', extraArgs = [variables])
+       
+   - Add lights
+   - Greetings
+
+** Oct.31 Roam Mode
+   - Skybox. Tried this:
+     http://blenderartists.org/forum/showthread.php?96131-Tutorial-Creating-Skybox-Textures-*Template-Included!*
+
+** Nov.13 Roam Mode
+   - Completely solved the skybox problem
+   - export a box model in blender, directly modify the *.egg file
+   - map the images to it
+   - Feels Great!
+
+** Nov.14 AI
+   - Plan to do an ai using mini-max
+     
+** Thu Nov 14
+   - background music for roam, menu
+   - randomize pokemon positions for roam
+   - read data from "captured pokemon"
+   - make them roar
+   - design and make the board in Maya
+   - [X] Convert the board to egg and make it collidable
+   - make a pokemon model collidable
+   - make pokemon walk, turn
+   - write ai
+   - ai <-> walk
+   - pokemon moves
+     
+** Fri Nov 15 16:24:40 EST 2013
+   - Finished model, texture, 
+   - MAKE COLLIDABLE:
+     - good to open .egg in c-mode
+
+** Sat Nov 16 10:21:22 EST 2013
+   - finished collision
+   - apply ctrl+A in Blender to increase performance
+   - HPR: H rotate around z axis
+   - P: rotate around y axis
+   - R: rotate around x axis
+   - model.place() to bring up the GUI
+   - THE max speed needs to be fixed
+   - [-]Goal: make pokemon walk and turn (collision box)
+   - [-]rotate camera
+     
+** Sun Nov 17 00:38:04 EST 2013
+   - coordinates: z -> top, y away, x right
+   - 
+     

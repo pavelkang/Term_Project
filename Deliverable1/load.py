@@ -33,7 +33,7 @@ def load_sound(name):
     return file
 
 def load_bgmusic(name):
-    filePath = os.path.join('..','google_drive','ball','data','bgmusic',name)
+    filePath = os.path.join('..','google_drive','ball','bgmusic',name)
     try:
         file = loader.loadSfx(filePath)
     except:

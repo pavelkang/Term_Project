@@ -9,7 +9,7 @@ def loadBackground(self, imagePath):
 def loadMyPokemon_Dark(pokes=['caterpie', 'charmander', 'geodude']):
     path = r"../google_drive/ball/data/img/myPoke"
     pokePath = path + r"/%s" %(pokes[0]) + r"_dark.png"
-    poke = OnscreenImage(parent=aspect2d, image=pokePath,
+    poke1 = OnscreenImage(parent=aspect2d, image=pokePath,
                          pos=(1.2,0,-0.8), scale=_SCALE)
     poke2Path = path + r"/%s" %(pokes[1]) + r"_dark.png"
     poke2 = OnscreenImage(parent=aspect2d, image=poke2Path,
@@ -17,7 +17,30 @@ def loadMyPokemon_Dark(pokes=['caterpie', 'charmander', 'geodude']):
     poke3Path = path + r"/%s" %(pokes[2]) + r"_dark.png"
     poke3 = OnscreenImage(parent=aspect2d, image=poke3Path,
                           pos=(0.6,0,-0.8), scale=_SCALE)
-    poke.setTransparency(TransparencyAttrib.MAlpha)
+    poke1.setTransparency(TransparencyAttrib.MAlpha)
     poke2.setTransparency(TransparencyAttrib.MAlpha)
     poke3.setTransparency(TransparencyAttrib.MAlpha)    
-    return [poke, poke2, poke3]
+    return [poke1, poke2, poke3]
+
+def loadMyPokemon_Bright(pokes=['caterpie', 'charmander', 'geodude']):
+    # load bright pokemon pictures
+    path = r"../google_drive/ball/data/img/myPoke"
+    pokePath = path + r"/%s" %(pokes[0]) + r".png"
+    poke1 = OnscreenImage(parent=aspect2d, image=pokePath,
+                         pos=(1.2,0,-0.8), scale=_SCALE)
+    poke2Path = path + r"/%s" %(pokes[1]) + r".png"
+    poke2 = OnscreenImage(parent=aspect2d, image=poke2Path,
+                          pos=(0.9,0,-0.8), scale=_SCALE)
+    poke3Path = path + r"/%s" %(pokes[2]) + r".png"
+    poke3 = OnscreenImage(parent=aspect2d, image=poke3Path,
+                          pos=(0.6,0,-0.8), scale=_SCALE)
+    poke1.setTransparency(TransparencyAttrib.MAlpha)
+    poke2.setTransparency(TransparencyAttrib.MAlpha)
+    poke3.setTransparency(TransparencyAttrib.MAlpha)    
+    return [poke1, poke2, poke3]
+
+def loadMyIcon(self, imagePath):
+    pass
+
+def loadPokeIcon(self, imagePath):
+    pass
