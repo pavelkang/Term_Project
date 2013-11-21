@@ -33,7 +33,7 @@ import TwoDInterface as Two_D
 import maze
 import Key_Control as Control
 import Model_Load
-from util import checkEat, groupHide, groupShow
+from util import *
 
 MAZE = maze.Maze()
 ACCELERATION = 70
@@ -43,7 +43,7 @@ _JERK = 0.08
 _SPEED = 0.05
 UP = Vec3(0,0,1) # upward vector
 _FLOOR = 1
-_BGIMG = "../google_drive/ball/data/img/ground.jpg"
+
 _FOCUS = [0,0,0]
 
 class Labryn(DirectObject):
@@ -113,6 +113,31 @@ class Labryn(DirectObject):
             self.candyOnBoard = True
         return Task.cont
             
+    def usePokeMove(self, number):
+        # number = 1: char 2: geo 3: caterpie
+        if number == 1:
+            if self.pokeMoveChoice != 1: # NONE or other
+                self.pokeMoveChoice = 1
+            else: # already 1
+                self.pokeMoveChoice = None
+        elif number == 2:
+            if self.pokeMoveChoice != 2:
+                self.pokeMoveChoice = 2
+            else:
+                self.pokeMoveChoice = None
+        elif number == 3:
+            if self.pokeMoveChoice != 3:
+                self.pokeMoveChoice = 3
+            else:
+                self.pokeMoveChoice = None
+        if self.pokeMoveChoice == None: # no choice
+            if self.myPokeName != None: # there is a name on board
+                self.myPokeName.destroy() # kill it
+            else: # no name
+                pass
+        else: # there is a choice
+            self.myPokeName = Two_D.writePokeName(self.pokeMoveChoice)
+  
     def loadRareCandy(self):
         self.candy = Model_Load.loadRareCandy()
         self.candy.reparentTo(render)
@@ -122,10 +147,13 @@ class Labryn(DirectObject):
     def eatRareCandy(self, task):
         if self.candyOnBoard: # candy on board
             if checkEat(self.ballRoot.getX(), self.ballRoot.getY(),
-                        self.candy.getX(), self.candy.getY()): # ball eats candy
+                        self.candy.getX(), self.candy.getY()): # ball eats
                 self.candy.hide() # eaten
                 self.candyOnBoard = False
                 self.playerCandyCount += 1
+                self.playerCandyStatus.destroy()
+                self.playerCandyStatus = candyStatus(0,
+                                       self.playerCandyCount) # update
                 print "BALL EATS CANDY"
                 groupShow(self.myPokesBright)
 
@@ -163,29 +191,39 @@ class Labryn(DirectObject):
         return Task.cont
 
     def initialize(self):
-        bgmusic = load_bgmusic("palette.mp3")
-        bgmusic.play()
-        Two_D.loadBackground(self,_BGIMG) # Background
+        #bgmusic = load_bgmusic("palette.mp3")
+        #bgmusic.play()
+        self.background = Two_D.loadBackground()
+        base.cam2dp.node().getDisplayRegion(0).setSort(-20)
         self.candyOnBoard = False
         self.playerCandyCount, self.pokemonCandyCount = 0, 0
+        ######################Rare Candy###############################
         pokes=['caterpie', 'charmander', 'geodude']
         self.myPokesDark = Two_D.loadMyPokemon_Dark(pokes) # my pokemons
         self.myPokesBright = Two_D.loadMyPokemon_Bright()
         groupHide(self.myPokesBright)
         self.loadRareCandy() # load rare candy
-        base.disableMouse()
+        ######################Camera Initialization####################
         self.CAM_R, self.CAM_RAD = 12, 0
         camera.setPos(_FOCUS[0],_FOCUS[1]-12,_FOCUS[2]+25)
         camera.setHpr(0, -65, 0)
+        self.cameraSpinCount, self.cameraZoomCount = 0, 0
+        self.changingFocus = False
+        self.spin = 0
+        #######################ICONS###################################
+        self.myIcon = Two_D.loadMyIcon()
+        self.pokeIcon = Two_D.loadPokeIcon()
+        self.playerCandyStatus = candyStatus(0, self.playerCandyCount)
+        #######################GLOBALS#################################
+        self.pokeMoveChoice = None
+        self.myPokeName = None
         self.rock = None
         self.arrowKeyPressed = False
         self.pokemonDirection = 'd'
         self.mouseX, self.mouseY = None, None
         # direction the ball is going
         self.jerkDirection = None
-        self.spin = 0
-        self.changingFocus = False
-        self.cameraSpinCount, self.cameraZoomCount = 0, 0
+        base.disableMouse()
         self.jerk = (0,0,0)
         self.MAZE = Model_Load.loadLabyrinth()
         Control.keyControl(self)

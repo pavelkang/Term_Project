@@ -102,7 +102,7 @@
 
 ** Sat Nov 16 10:21:22 EST 2013
    - finished collision
-   - apply ctrl+A in Blender to increase performance
+   - apply ctrl+A in Blender to increase performance  DONE
    - HPR: H rotate around z axis
    - P: rotate around y axis
    - R: rotate around x axis
@@ -121,4 +121,8 @@
    - 2d interface, background -  0.5 hour
    - make pokemons moves (particle) - 4.5 hour
    - music, 3d model (2 hour)
-     
+   - TODO: memoize sin values
+   - improve control
+   - mini-map
+   - sound effects
+   - moves

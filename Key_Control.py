@@ -23,3 +23,6 @@ def keyControl(self):
     self.accept("shift", self.setFocus, [True])
     self.accept("shift-up", self.setFocus, [False])
     self.accept("r", self.resetView)
+    self.accept("1", self.usePokeMove, [1])
+    self.accept("2", self.usePokeMove, [2])
+    self.accept("3", self.usePokeMove, [3])
