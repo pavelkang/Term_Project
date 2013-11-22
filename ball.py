@@ -43,7 +43,6 @@ _JERK = 0.08
 _SPEED = 0.05
 UP = Vec3(0,0,1) # upward vector
 _FLOOR = 1
-
 _FOCUS = [0,0,0]
 
 class Labryn(DirectObject):
@@ -96,12 +95,14 @@ class Labryn(DirectObject):
         return Task.cont
 
     def placeRock(self):
-        if self.mouseX != None and self.mouseY != None:
-            if self.rock != None:
-                self.rock.removeNode()
-            self.rock = Model_Load.loadRock()
-            self.rock.setPos(self.mouseX*9.3, self.mouseY*7.5, _FLOOR)
-
+        if self.pokeMoveChoice == 1: # selected Geodude
+            if self.mouseX != None and self.mouseY != None:
+                # SET THE POSITION OF THE ROCK
+                print self.mouseX, self.mouseY
+                #rock_pos=MAZE.translateRockPosition(self.mouseX, self.mouseY)
+                #self.rock.setPos(rock_pos)
+                #self.rock.show()
+            
     def placeRareCandy(self, task):
         if int(task.time) % 4 == 9 and self.candyOnBoard:
             self.candy.hide()
@@ -136,6 +137,8 @@ class Labryn(DirectObject):
             else: # no name
                 pass
         else: # there is a choice
+            if self.myPokeName != None:
+                self.myPokeName.destroy()
             self.myPokeName = Two_D.writePokeName(self.pokeMoveChoice)
   
     def loadRareCandy(self):
@@ -230,6 +233,10 @@ class Labryn(DirectObject):
         self.loadPokemonLevel1()
         self.light()
         self.loadBall()
+        ########################################ROCK###################
+        self.rock = Model_Load.loadRock()
+        self.rock.reparentTo(render)
+        self.rock.hide() # Do not show, but load beforehand for performance
         
     def loadPokemonLevel1(self):
         self.pikachu = load_model("pikachu.egg")
@@ -407,7 +414,6 @@ class Labryn(DirectObject):
             elif direction == "r":
                 self.jerk = Vec3(_JERK,0,0)
         return Task.cont
-
         
     # collision between ray and ground
     # info about the interaction is passed in colEntry

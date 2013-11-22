@@ -40,11 +40,14 @@ class Maze(object):
 
     def two2Three(self, row, col):
         return ( _COL_LABEL[col],_ROW_LABEL[row], _Z)
-        
+
+    def translateRockPosition(self, x, y):
+        pass
+
+    
     def generateCandyPos(self):
         row = random.randint(0, _ROWS-1)
         col = random.randint(0, _COLS-1)
-        print row, col
         while self.board[row][col] != 1: # cannot place here
             row = random.randint(0, _ROWS-1)
             col = random.randint(0, _COLS-1)            
