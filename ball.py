@@ -177,13 +177,16 @@ class Labryn(DirectObject):
     def resetView(self):
         self.CAM_R, self.CAM_RAD = 12, 0
         self.cameraSpinCount, self.cameraZoomCount = 0, 0
-        _FOCUS = [0, 0, 0]
+        # _FOCUS = [0,0,0] does not work WHY???
+        _FOCUS[0], _FOCUS[1], _FOCUS[2] = 0,0,0
+        self.changingFocus = False
+        self.referenceX, self.referenceY = None, None
         camera.setPos(_FOCUS[0], _FOCUS[1]-self.CAM_R, 25)
         camera.setHpr(0, -65, 0)
         
     def changeFocus(self, task):
         if (self.changingFocus == True and self.mouseX != None and
-            self.mouseY != None):
+            self.mouseY != None ):
             dX, dY = ((self.mouseX - self.referenceX)*0.1,
                       (self.mouseY - self.referenceY)*0.1)
             _FOCUS[0] += dX
@@ -320,7 +323,7 @@ class Labryn(DirectObject):
         self.cTrav.addCollider(self.ballSphere,self.cHandler)
         self.cTrav.addCollider(self.ballGroundColNp,self.cHandler)
         # collision traversers have a built-in tool to visualize collisons
-        # self.cTrav.showCollisions(render)
+        #self.cTrav.showCollisions(render)
         self.start()
 
     def pokemonTurn(self, pokemon, direction):

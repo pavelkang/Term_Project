@@ -1,0 +1,4 @@
+this is a file
+it contains multiple lines
+here i am
+this is the last line
