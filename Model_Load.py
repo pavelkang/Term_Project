@@ -1,4 +1,11 @@
+# enable particle effects
+from direct.particles.ParticleEffect import ParticleEffect
+
 from load import *
+
+_FLAME = ParticleEffect()
+_FLAME.loadConfig("fireish.ptf")
+
 def loadRareCandy():
     candy = load_model("Gold.egg")
     return candy
@@ -14,4 +21,8 @@ def loadRock():
     rock = load_model("rock.egg")
     rock.reparentTo(render)
     rock.setPos(0,0,1)
+    rock.setScale(0.7)
     return rock
+
+
+

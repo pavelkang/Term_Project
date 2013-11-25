@@ -41,9 +41,31 @@ class Maze(object):
     def two2Three(self, row, col):
         return ( _COL_LABEL[col],_ROW_LABEL[row], _Z)
 
-    def translateRockPosition(self, x, y):
-        pass
+    def three2Two(self, x, y):
+        return (findClosest(y,_ROW_LABEL), findClosest(x,_COL_LABEL))
 
+    def canDropRock(self, rockX, rockY):
+        row, col = self.three2Two(rockX, rockY)
+        if self.board[row][col] == 1:
+            return (row, col)
+        else:
+            return False
+
+    def dropRock(self,row, col):
+        self.board[row][col] = 2
+        self.rockRow, self.rockCol = row, col
+
+    def clearRock(self):
+        try:
+            self.board[self.rockRow][self.rockCol] = 1
+        except:
+            pass
+    
+    def translateRockPosition(self, rockRefX, rockRefY, dX, dY):
+        minXDist = min(1-rockRefX, rockRefX+1)
+        minYDist = min(1-rockRefY, rockRefY+1)
+        scaleX, scaleY = 8/minXDist, 4/minYDist
+        return (dX*scaleX, dY*scaleY)
     
     def generateCandyPos(self):
         row = random.randint(0, _ROWS-1)
@@ -90,7 +112,7 @@ class Maze(object):
                 # out of board
                 pass
             else:
-                if self.board[row+drow][col+dcol] == 1: # not wall
+                if self.board[row+drow][col+dcol] == 1: # not wall nor rock
                     legals.append(dir)
         #print legals
         return legals

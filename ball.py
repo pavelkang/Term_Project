@@ -10,6 +10,8 @@ from panda3d.core import Material,LRotationf,NodePath
 from panda3d.core import AmbientLight,DirectionalLight
 # node
 from panda3d.core import TextNode
+# enable particle effects
+from direct.particles.ParticleEffect import ParticleEffect
 # vector
 from panda3d.core import Vec3,Vec4,BitMask32
 # GUI
@@ -44,6 +46,8 @@ _SPEED = 0.05
 UP = Vec3(0,0,1) # upward vector
 _FLOOR = 1
 _FOCUS = [0,0,0]
+_FLAME = ParticleEffect()
+_FLAME.loadConfig("fireish.ptf")
 
 class Labryn(DirectObject):
 
@@ -94,15 +98,41 @@ class Labryn(DirectObject):
             self.mouseY=base.mouseWatcherNode.getMouseY()
         return Task.cont
 
-    def placeRock(self):
+    def dropRock(self):
         if self.pokeMoveChoice == 1: # selected Geodude
-            if self.mouseX != None and self.mouseY != None:
-                # SET THE POSITION OF THE ROCK
-                print self.mouseX, self.mouseY
-                #rock_pos=MAZE.translateRockPosition(self.mouseX, self.mouseY)
-                #self.rock.setPos(rock_pos)
-                #self.rock.show()
-            
+            result = MAZE.canDropRock(self.rockX, self.rockY)
+            if result != False: # can place rock here
+                MAZE.dropRock(result[0],result[1])
+                self.rock.setPos(self.rockX, self.rockY, 1)
+                self.rockOnMaze = True
+                self.pokeMoveChoice = None
+                self.myPokeName.hide()
+                self.myPokeName = None
+                self.updateTwoD()
+                self.playerCandyCount -= 1
+
+    def useFlame(self):
+        self.onFire = True # on fire
+        self.playerCandyCount -= 1
+        self.pokeStatus = 1
+        self.flame = ParticleEffect()
+        self.flame.loadConfig("fireish.ptf")
+        self.flame.setPos(self.pikachu.getPos())
+        self.flame.start(parent=render, renderParent=render)
+        self.updateTwoD()
+    
+    def placeRock(self, task):
+        if self.pokeMoveChoice == 1: # selected Geodude
+            dX,dY = ((self.mouseX-self.rockRefX),
+                     (self.mouseY-self.rockRefY))
+            self.rockX, self.rockY = MAZE.translateRockPosition(self.rockRefX,
+                                                      self.rockRefY,
+                                                      dX, dY)
+            self.rock.show()
+            self.rock.setPos(self.rockX, self.rockY, 1)
+        self.updateTwoD()
+        return Task.cont
+    
     def placeRareCandy(self, task):
         if int(task.time) % 4 == 9 and self.candyOnBoard:
             self.candy.hide()
@@ -113,33 +143,91 @@ class Labryn(DirectObject):
             self.candy.show()
             self.candyOnBoard = True
         return Task.cont
-            
-    def usePokeMove(self, number):
-        # number = 1: char 2: geo 3: caterpie
-        if number == 1:
-            if self.pokeMoveChoice != 1: # NONE or other
-                self.pokeMoveChoice = 1
-            else: # already 1
-                self.pokeMoveChoice = None
-        elif number == 2:
-            if self.pokeMoveChoice != 2:
-                self.pokeMoveChoice = 2
-            else:
-                self.pokeMoveChoice = None
-        elif number == 3:
-            if self.pokeMoveChoice != 3:
-                self.pokeMoveChoice = 3
-            else:
-                self.pokeMoveChoice = None
-        if self.pokeMoveChoice == None: # no choice
-            if self.myPokeName != None: # there is a name on board
-                self.myPokeName.destroy() # kill it
-            else: # no name
-                pass
-        else: # there is a choice
+
+    def updateTwoD(self):
+        # update player candy count
+        self.playerCandyStatus.destroy()
+        self.playerCandyStatus = candyStatus(0, self.playerCandyCount)
+        # update pikachu candy count
+        # TODO
+        # update my pokes color     
+        if self.playerCandyCount == 0 :
+            groupHide(self.myPokesBright)
+            groupShow(self.myPokesDark)
+            # update name
             if self.myPokeName != None:
                 self.myPokeName.destroy()
-            self.myPokeName = Two_D.writePokeName(self.pokeMoveChoice)
+
+    def clearRock(self):
+        self.rock.hide()
+        self.rockOnMaze = False
+        MAZE.clearRock() # clear it in 2D
+
+    def clearFlame(self):
+        self.onFire = False
+        self.flame.cleanup()
+        self.pokeStatus = 0
+        self.pokeMoveChoice = None
+        try:
+            self.myPokeName.destroy()
+        except:
+            pass
+        self.myPokeName = None
+        
+    def timer(self, task): # deals with moves' lasting effects
+        if self.rockOnMaze: # rock on maze
+            self.rockCounter += 1
+        elif self.rockCounter != 1: # rock not on maze, counter not cleared
+            self.rockCounter = 0
+
+        if self.onFire:
+            self.fireCounter += 1
+        elif self.fireCounter != 1:
+            self.fireCounter = 0
+            
+        if self.rockCounter == 500:
+            self.clearRock()
+
+        if self.fireCounter == 80:
+            self.clearFlame()
+            
+        return Task.cont
+
+    def usePokeMove(self, number):
+        if self.playerCandyCount > 0: # have more than one candy
+            if number == 1 and self.rockOnMaze == False:
+                if self.pokeMoveChoice != 1: # NONE or other
+                    # set to center position
+                    centerx =  base.win.getProperties().getXSize()/2
+                    centery =  base.win.getProperties().getYSize()/2
+                    base.win.movePointer(0,centerx,centery)
+                    self.pokeMoveChoice = 1 # placeRock called here
+                    self.rockRefX, self.rockRefY = 0,0
+                    self.rock.show()
+                    self.rock.setPos(0,0,1)
+                else: # already 1
+                    self.pokeMoveChoice = None
+                    self.clearRock() # clear rock
+            elif number == 2:
+                if self.pokeMoveChoice != 2:
+                    self.pokeMoveChoice = 2
+                    self.useFlame()
+                else:
+                    self.pokeMoveChoice = None
+            elif number == 3:
+                if self.pokeMoveChoice != 3:
+                    self.pokeMoveChoice = 3
+                else:
+                    self.pokeMoveChoice = None
+            if self.pokeMoveChoice == None: # no choice
+                if self.myPokeName != None: # there is a name on board
+                    self.myPokeName.destroy() # kill it
+                else: # no name
+                    pass
+            else: # there is a choice
+                if self.myPokeName != None:
+                    self.myPokeName.destroy()
+                self.myPokeName = Two_D.writePokeName(self.pokeMoveChoice)
   
     def loadRareCandy(self):
         self.candy = Model_Load.loadRareCandy()
@@ -154,9 +242,9 @@ class Labryn(DirectObject):
                 self.candy.hide() # eaten
                 self.candyOnBoard = False
                 self.playerCandyCount += 1
-                self.playerCandyStatus.destroy()
-                self.playerCandyStatus = candyStatus(0,
-                                       self.playerCandyCount) # update
+                # self.playerCandyStatus.destroy()
+                # self.playerCandyStatus = candyStatus(0,
+                                       # self.playerCandyCount) # update
                 print "BALL EATS CANDY"
                 groupShow(self.myPokesBright)
 
@@ -202,7 +290,7 @@ class Labryn(DirectObject):
         self.background = Two_D.loadBackground()
         base.cam2dp.node().getDisplayRegion(0).setSort(-20)
         self.candyOnBoard = False
-        self.playerCandyCount, self.pokemonCandyCount = 0, 0
+        self.playerCandyCount, self.pokemonCandyCount = 2, 0
         ######################Rare Candy###############################
         pokes=['caterpie', 'charmander', 'geodude']
         self.myPokesDark = Two_D.loadMyPokemon_Dark(pokes) # my pokemons
@@ -220,10 +308,16 @@ class Labryn(DirectObject):
         self.myIcon = Two_D.loadMyIcon()
         self.pokeIcon = Two_D.loadPokeIcon()
         self.playerCandyStatus = candyStatus(0, self.playerCandyCount)
+        #######################FLAMES##################################
+        base.enableParticles()
+        self.fireCounter = 0
+        self.onFire = False
         #######################GLOBALS#################################
+        self.rockCounter  = 0
+        self.rockX, self.rockY = None, None
+        self.rockOnMaze = False
         self.pokeMoveChoice = None
         self.myPokeName = None
-        self.rock = None
         self.arrowKeyPressed = False
         self.pokemonDirection = 'd'
         self.mouseX, self.mouseY = None, None
@@ -236,6 +330,7 @@ class Labryn(DirectObject):
         self.loadPokemonLevel1()
         self.light()
         self.loadBall()
+        self.pokeStatus = 0 # 0 is normal, 1 is burned, 2 is slow-speed
         ########################################ROCK###################
         self.rock = Model_Load.loadRock()
         self.rock.reparentTo(render)
@@ -306,7 +401,12 @@ class Labryn(DirectObject):
         #self.mazeGround.node().setIntoCollideMask(BitMask32.bit(1))
         self.MAZEGROUND = self.MAZE.find("**/Cube.004")
         self.MAZEGROUND.node().setIntoCollideMask(BitMask32.bit(1))
-                                         
+        # add collision to the rock
+        cs = CollisionSphere(0, 0, 0, 0.5)
+        self.cnodePath = self.rock.attachNewNode(CollisionNode('cnode'))
+        self.cnodePath.node().addSolid(cs)
+        self.cnodePath.show()
+        self.cnodePath.node().setIntoCollideMask(BitMask32.bit(0))
         # load the ball and attach it to the scene.
         # it is on a dummy node so that we can rotate the ball
         # without rotating the ray that will be attached to it
@@ -314,14 +414,14 @@ class Labryn(DirectObject):
         # CollisionTraversers calculate collisions
         self.cTrav = CollisionTraverser()
         #self.cTrav.showCollisions(render)
-        # self.cTrav.showCollisions(render)
+        #self.cTrav.showCollisions(render)
         # A list collision handler queue
         self.cHandler = CollisionHandlerQueue()
-
         # add collision nodes to the traverse.
         # maximum nodes per traverser: 32
         self.cTrav.addCollider(self.ballSphere,self.cHandler)
         self.cTrav.addCollider(self.ballGroundColNp,self.cHandler)
+        self.cTrav.addCollider(self.cnodePath, self.cHandler)
         # collision traversers have a built-in tool to visualize collisons
         #self.cTrav.showCollisions(render)
         self.start()
@@ -342,17 +442,21 @@ class Labryn(DirectObject):
                         
     def pokemonMove(self, pokemon, direction):
         self.pokemonTurn(pokemon, direction)
+        if self.pokeStatus == 0: speed = _SPEED
+        elif self.pokeStatus == 1: speed = 0
+        else: # self.pokeStatus == 2
+            speed = _SPEED/2.0
         if direction == 'l':
-            newX = pokemon.getX() - _SPEED
+            newX = pokemon.getX() - speed
             pokemon.setX(newX)
         elif direction == 'r':
-            newX = pokemon.getX() + _SPEED
+            newX = pokemon.getX() + speed
             pokemon.setX(newX)
         elif direction == 'u':
-            newY = pokemon.getY() + _SPEED
+            newY = pokemon.getY() + speed
             pokemon.setY(newY)
         elif direction == 'd':
-            newY = pokemon.getY() - _SPEED
+            newY = pokemon.getY() - speed
             pokemon.setY(newY)
         elif direction == "s": # stop
             pass
@@ -387,6 +491,8 @@ class Labryn(DirectObject):
 
         # create the movement task, make sure its not already running
         taskMgr.remove("rollTask")
+        taskMgr.add(self.placeRock, "placeRock")
+        taskMgr.add(self.timer, "timer")
         taskMgr.add(self.getInformation, "getInformation")
         taskMgr.add(self.eatRareCandy, "eatRareCandy")
         taskMgr.add(self.placeRareCandy, "placeRareCandy")
@@ -420,6 +526,7 @@ class Labryn(DirectObject):
         
     # collision between ray and ground
     # info about the interaction is passed in colEntry
+    
     def groundCollideHandler(self,colEntry):
         # set the ball to the appropriate Z for it to be on the ground
         newZ = colEntry.getSurfacePoint(render).getZ()
@@ -476,6 +583,9 @@ class Labryn(DirectObject):
                 self.wallCollideHandler(entry)
             elif name=="Cube.004":
                 self.groundCollideHandler(entry)
+            else: 
+                if self.rockOnMaze == True:
+                    self.wallCollideHandler(entry)
         self.accelV += self.jerk
         # move the ball, update the velocity based on accel
         self.ballV += self.accelV * dt * ACCELERATION

@@ -11,7 +11,7 @@ def keyControl(self):
     self.accept("s-up",self.moveBallWrapper,[False])
     self.accept("a-up",self.moveBallWrapper,[False])
     self.accept("d-up",self.moveBallWrapper,[False])
-    self.accept("mouse1-up", self.placeRock)
+    self.accept("mouse1-up", self.dropRock)
     self.accept("e", self.setCamera, [1])
     self.accept("e-up", self.setCamera, [0])
     self.accept("q", self.setCamera, [2])
