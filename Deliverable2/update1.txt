@@ -1,0 +1,20 @@
+updates: (You can find instructions on how to run the program in README)
+1. ball.py
+   pokemon moves fully functional
+   camera fully functional (pan, zoom, spin)
+   2D Interface
+
+2. Key_Control.py
+   more control functions
+
+3. load.py
+   added load background music function
+
+4. maze.py
+   added new functions such as placeRock, etc.
+
+5. TwoDinterface.py
+   2D interface added to ball.py
+
+6. util.py
+   useful helper functions used in ball.py

@@ -131,9 +131,7 @@
    - moves
 
 ** Sun Nov 24 23:01:02 EST 2013
-   - add music player function, hide/show instructions to roam mode (1.5 hour)
-   - new AI ( heuristic is calculated by distance )
+   - add music player function to roam mode (1.5 hour)
+   - add more models (1.5 hour)
 
-** Mon Nov 25 23:56:29 EST 2013
-   - write AI (1 hour)
    

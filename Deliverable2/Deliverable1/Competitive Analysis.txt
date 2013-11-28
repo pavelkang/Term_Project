@@ -1,0 +1,26 @@
+* Competitive Analysis
+  There are two games in market that are similar to this one.
+  1. Pokemon RPG
+     This is the all-time best seller game console game. It has the best story
+     line, characters, gaming mechanics. However, the only problem is that, 
+     since it is a rpg, it is slow-pace and can sometimes bore the player.
+     That is why I want to make it an action game. Therefore, players can enjoy
+     the adorable pokemons and fast-pace, exciting (hopefully) game at the same
+     time.
+     The reason why Pokemon can be so successful is certainly not its graphics,
+     but the fact that you are forever in search of more pokemons and trying to
+     make them your own. So I just decided to make the "capture pokemon" theme
+     more straightforward. You control the ball to chase your pokemon.
+
+  2. Hamster Ball
+     This is a very well-designed, relaxing game. It is 3D. You control the ball
+     in which there is a hamster all the way to the destination. This game can
+     be really addictable. The reason is that it is really interesting to contr-
+     ol 3D objects on computer screen. And since the ball would just be a sphere,
+     the maze is the union of multiple boxes, and I have found pokemon 3d models
+     online, I decided to put the idea into practice. Hamster Ball also has an
+     obvious disadvantage. It has no story line. So there is really no reason
+     for players to keep playing that game. Maybe playing for five minutes dur-
+     ing break time is a good idea, but players just won't become fully engaged.
+     That's why I want to combine Pokemon's rich background with Hamster Ball's
+     brilliant gaming experience.

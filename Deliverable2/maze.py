@@ -1,7 +1,7 @@
 # This class is a 2D representation of the board
 import random
 import AI
-import copy
+
 # 0 is wall. 1 is path
 _BOARD = [[1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
           [1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1],
@@ -41,17 +41,6 @@ class Maze(object):
     def two2Three(self, row, col):
         return ( _COL_LABEL[col],_ROW_LABEL[row], _Z)
 
-    def nextState(self, dir1):
-        # takes a current maze and a direction, returns the new state
-        # move1 is pikachu's move
-        move1 = _DIR[dir1]
-        COPY = self.copy()
-        COPY.pokeRow += move1[0]
-        COPY.pokeCol += move1[1]
-        COPY.pokeX += move1[0]*0.5
-        COPY.pokeY += move1[1]*0.5
-        return COPY
-    
     def three2Two(self, x, y):
         return (findClosest(y,_ROW_LABEL), findClosest(x,_COL_LABEL))
 
@@ -61,10 +50,7 @@ class Maze(object):
             return (row, col)
         else:
             return False
-        
-    def sendInformation(self, ballDirection):
-        self.ballDirection = ballDirection
-        
+
     def dropRock(self,row, col):
         self.board[row][col] = 2
         self.rockRow, self.rockCol = row, col
@@ -128,36 +114,17 @@ class Maze(object):
             else:
                 if self.board[row+drow][col+dcol] == 1: # not wall nor rock
                     legals.append(dir)
+        #print legals
         return legals
 
-    def copy(self):
-        COPY = Maze()
-        COPY.board, COPY.ballDirection = (copy.deepcopy(self.board),
-                                          self.ballDirection)
-        COPY.ballRow, COPY.ballCol = self.ballRow, self.ballCol
-        COPY.pokeRow, COPY.pokeCol = self.pokeRow, self.pokeCol
-        COPY.ballX, COPY.ballY = self.ballX, self.ballY
-        COPY.pokeX, COPY.pokeY = self.pokeX, self.pokeY
-        return COPY
-    
     def getDecision(self):
         # get decision from AI
         # get all legal moves
-        # legals = self.getLegalDirection()
-        """
+        legals = self.getLegalDirection()
         decision = AI.AI0_OppositeDirection(self.ballY, self.ballX,
                                             self.pokeY, self.pokeX,
                                             self.ballRow, self.ballCol,
                                             self.pokeRow, self.pokeCol,
                                             legals)
-        """
-        """
-        decision = AI.AI1_EuclideanDistance(self.ballRow, self.ballCol,
-                                            self.pokeRow, self.pokeCol,
-                                            legals)
-        """
-        decision = AI.AI3_EuclideanDistanceWithSearch(self.copy())
+        #print "decision", decision
         return decision
-
-    def __str__(self):
-        return str(self.ballRow)

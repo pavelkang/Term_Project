@@ -1,0 +1,10 @@
+This is my 15112 term project.
+It is a 3D Pokemon game made by Python.
+
+How To Run:
+Install panda3D
+Download all the sources (pictures, models) from github.com/pavelkang/Term_Project.
+Put the sources in the right directory according to load.py
+Use "python ball.py" to run the single-player mode.
+Use "python roam.py" to run the roam mode.
+Use "python menu.py" to run the menu.

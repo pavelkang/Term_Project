@@ -1,10 +1,5 @@
-# go fullscreen
-# from panda3d.core import loadPrcFileData
-#loadPrcFileData('', 'fullscreen 1')
-# loadPrcFileData("", "audio-library-name p3openal_audio")
 import panda3d
 import direct.directbase.DirectStart
-from util import *  # useful helper functions
 from panda3d.core import CollisionTraverser,CollisionNode
 from panda3d.core import CollisionHandlerQueue,CollisionRay
 from panda3d.core import Filename,AmbientLight,DirectionalLight
@@ -12,12 +7,10 @@ from panda3d.core import PandaNode,NodePath,Camera,TextNode
 from panda3d.core import Vec3,Vec4,BitMask32
 from direct.gui.OnscreenText import OnscreenText
 from direct.actor.Actor import Actor
-from direct.particles.ParticleEffect import ParticleEffect
 from direct.showbase.DirectObject import DirectObject
 import random, sys, os, math
 from load import *
-_FLAME = ParticleEffect()
-_FLAME.loadConfig("fireish.ptf")
+
 
 SPEED = 0.5
 
@@ -31,67 +24,61 @@ def addTitle(text):
     return OnscreenText(text=text, style=1, fg=(1,1,1,1),
                         pos=(1.3,-0.95), align=TextNode.ARight, scale = .07)
 
-_BGMUSIC = ("palette.mp3", "route1.mp3", "themeSong.mp3", "cerulean.mp3",\
-                "catchEmAll.ogg")
 
 class World(DirectObject):
 
-    def skyBoxLoad(self):
+    def __init__(self):
+        
+        self.keyMap = {"left":0, "right":0, "forward":0,"backward":0,
+                       "upward":0, "downward":0, "leftward":0,"rightward":0,
+                       "cam-left":0, "cam-right":0}
+        base.win.setClearColor(Vec4(0,0,0,1))
+
+        self.above = 3.0
+        # Post the instructions
+
+        self.title = addTitle("My Pokemon - Roam Mode")
+        self.inst1 = addInstructions(0.95, "[ESC]: Quit")
+        self.inst2 = addInstructions(0.90, "[Arrow Keys]: Move")
+        self.inst4 = addInstructions(0.85, "[w]: look up")
+        self.inst4 = addInstructions(0.80, "[s]: look down")
+        self.environ = load_model("secondWorld.egg")
+        self.environ.reparentTo(render)
+        self.environ.setPos(0,0,0)
+        
+        # Create the main character, Ralph
+        
         self.spaceSkyBox = load_model('skybox1.egg')
         self.spaceSkyBox.setScale(150)
         self.spaceSkyBox.setLightOff()
         self.spaceSkyBox.reparentTo(render)
         self.spaceSkyBox.setPos(0,0,-200)
-        self.spaceSkyBox.setHpr(0,0,0)        
+        self.spaceSkyBox.setHpr(0,0,0)
+        ralphStartPos = self.environ.find("**/start_point").getPos()
+        self.ralph = Actor("../google_drive/ball/data/models/ralph",
+                                 {"run":"../google_drive/ball/data/models/ralph-run",
+                                  "walk":"../google_drive/ball/data/models/ralph-walk"})
+        self.ralph.reparentTo(render)
+        self.ralph.setScale(.2)
+        self.ralph.setPos(ralphStartPos)
+        #self.ralph.hide()
 
-    def loadEnviron(self):
-        self.environ = load_model("secondWorld.egg")
-        self.environ.reparentTo(render)
-        self.environ.setPos(0,0,0)
-
-    def loadPokemon(self):
         self.pikachu = load_model("pikachu.egg")
         self.pikachu.reparentTo(render)
         self.pikachu.setScale(1)
-        self.pikachu.setPos(0,0,4)
-        # self.pikachu.place()
+        self.pikachu.setPos(ralphStartPos)
+        
         self.Groudon = load_model("Groudon.egg")
         self.Groudon.reparentTo(render)
-        self.Groudon.setPos(-50,0,0)        
-        # self.Groudon.place()
-        self.Char = load_model("char.egg")
-        self.Char.reparentTo(render)
-        self.Char.setScale(1)
-        self.Char.setPos(self.ralphStartPos[0], self.ralphStartPos[1]-40,
-                         self.ralphStartPos[2])
-        self.Char.setHpr(180,0,0)
-        _FLAME.setPos(-107.57, -17.29, 1.69)
-        _FLAME.setScale(0.3)
-        _FLAME.start(parent=render, renderParent=render)
-        # _FLAME.place()
-        # self.Hooh.place()
-    def loadRalph(self):
-        # Create the main character, Ralph
-        basePath = r"../google_drive/ball/data/models/"
-        self.ralphStartPos = self.environ.find("**/start_point").getPos()
-        self.ralph = Actor(basePath+"ralph",{"run":basePath+"ralph-run",
-                                  "walk":basePath+"ralph-walk"})
-        self.ralph.reparentTo(render)
-        self.ralph.setScale(.2)
-        self.ralph.setPos(self.ralphStartPos)
-        self.ralph.hide()                    
-
-    def loadNextMusic(self, task):
-        # random load background music
-        if (self.music.status()!=self.music.PLAYING):
-            # not playing
-            self.musicCounter += 1
-            index = self.musicCounter % len(_BGMUSIC)
-            self.music = load_bgmusic(_BGMUSIC[index])
-            self.music.play()
-        return task.cont
+        self.Groudon.setPos(ralphStartPos)
+        # Create a floater object.  We use the "floater" as a temporary
+        # variable in a variety of calculations.
         
-    def keyControl(self):
+        self.floater = NodePath(PandaNode("floater"))
+        self.floater.reparentTo(render)
+
+        # Accept the control keys for movement and rotation
+
         self.accept("escape", sys.exit)
         self.accept("arrow_left", self.setKey, ["left",1])
         self.accept("arrow_right", self.setKey, ["right",1])
@@ -103,85 +90,30 @@ class World(DirectObject):
         self.accept("w-up",self.setKey,["upward",0])
         self.accept("s",self.setKey,["downward",1])
         self.accept("s-up",self.setKey,["downward",0])
-        self.accept("t", self.toggleMusic)
-        self.accept("u", self.changeVolume, ['u'])
-        self.accept("d", self.changeVolume, ['d'])
-        self.accept("h", self.hideInstructions)
-
-    def changeVolume(self, direction):
-        if direction == 'u' and self.volume < 1:
-            self.volume += 0.1
-        else: # direction == 'd'
-            if self.volume > 0:
-                self.volume -= 0.1
-        self.music.setVolume(self.volume)
-            
-    def toggleMusic(self):
-        self.music.stop()
-        self.musicCounter += 1 # increment the counter by 
-        index = self.musicCounter % len(_BGMUSIC)
-        self.music = load_bgmusic(_BGMUSIC[index])
-        self.music.play()
         
-    def displayInformation(self):
-        self.title = addTitle("My Pokemon - Roam Mode")
-        self.inst1 = addInstructions(0.95, "[ESC]: Quit")
-        self.inst2 = addInstructions(0.90, "[Arrow Keys]: Move")
-        self.inst3 = addInstructions(0.85, "[w]: look up")
-        self.inst4 = addInstructions(0.80, "[s]: look down")
-        self.inst5 = addInstructions(0.75, "[t]: toggle next song")
-        self.inst6 = addInstructions(0.70, "[u]: volume up")
-        self.inst7 = addInstructions(0.65, "[d]: volume down")
-        self.inst8 = addInstructions(0.60, "[h]: hide/show instructions")
-        self.insts = [self.title, self.inst1, self.inst2, self.inst3,
-                      self.inst4, self.inst5, self.inst6, self.inst7,
-                      self.inst8]
 
-    def hideInstructions(self):
-        if self.instStatus == "show":
-            self.instStatus = "hide"
-            groupHide(self.insts)
-        else: # instructions are hidden
-            self.instStatus = "show"
-            groupShow(self.insts)
-            
-        
-    def __init__(self):
-        base.enableParticles()
-        self.keyMap = {"left":0, "right":0, "forward":0,"backward":0,
-                       "upward":0, "downward":0, "leftward":0,"rightward":0,
-                       "cam-left":0, "cam-right":0}
-        self.instStatus = "show"
-        self.musicCounter = 0
-        self.music = load_bgmusic(_BGMUSIC[self.musicCounter])
-        self.volume = 0.5
-        self.music.setVolume(self.volume)
-        # base.win.setClearColor(Vec4(0,0,0,1))
-        self.above = 3.0
-        # load environment
-        self.loadEnviron()
-        # load ralph
-        self.loadRalph()
-        # load sky box
-        self.skyBoxLoad()
-        # load pokemon
-        self.loadPokemon()
-
-        self.displayInformation()
-        self.keyControl()
-        # Create a floater object.  We use the "floater" as a temporary
-        # variable in a variety of calculations.
-        self.floater = NodePath(PandaNode("floater"))
-        self.floater.reparentTo(render)
         taskMgr.add(self.move,"moveTask")
         taskMgr.add(self.setAbove,"setAbove")
-        taskMgr.add(self.loadNextMusic, "loadRandomMusic")
+
+
+
         # Game state variables
         self.isMoving = False
+
         # Set up the camera
+        
         base.disableMouse()
         base.camera.setPos(self.ralph.getX(),self.ralph.getY(),2)
+        
+        # We will detect the height of the terrain by creating a collision
+        # ray and casting it downward toward the terrain.  One ray will
+        # start above ralph's head, and the other will start above the camera.
+        # A ray may hit the terrain, or it may hit a rock or a tree.  If it
+        # hits the terrain, we can detect the height.  If it hits anything
+        # else, we rule that the move is illegal.
+
         self.cTrav = CollisionTraverser()
+
         self.ralphGroundRay = CollisionRay()
         self.ralphGroundRay.setOrigin(0,0,1000)
         self.ralphGroundRay.setDirection(0,0,-1)
@@ -231,6 +163,7 @@ class World(DirectObject):
     #Records the state of the arrow keys
     def setKey(self, key, value):
         self.keyMap[key] = value
+    
 
     # Accepts arrow keys to move either the player or the menu cursor,
     # Also deals with grid checking and collision detection

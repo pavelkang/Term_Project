@@ -270,7 +270,7 @@ class Labryn(DirectObject):
                 # self.playerCandyStatus.destroy()
                 # self.playerCandyStatus = candyStatus(0,
                                        # self.playerCandyCount) # update
-                # print "BALL EATS CANDY"
+                print "BALL EATS CANDY"
                 groupShow(self.myPokesBright)
 
             elif checkEat(self.pikachu.getX(), self.pikachu.getY(),
@@ -342,7 +342,6 @@ class Labryn(DirectObject):
         self.stringCounter = 0
         #######################GLOBALS#################################
         self.i = 0
-        self.direction = 's'
         self.myDirection = ['zx', 'zy']
         self.rockCounter  = 0
         self.rockX, self.rockY = None, None
@@ -495,19 +494,18 @@ class Labryn(DirectObject):
     def whereToGo(self, task):
         # this returns the direction pokemon should go
         # tell MAZE pokemon and ball's board position
-        #print self.myDirection
-        self.pokemonMove(self.pikachu, self.direction)
+        print self.myDirection
         MAZE.setPokeCoord(self.pikachu.getX(), self.pikachu.getY(),
                           self.pokemonDirection)
         MAZE.setBallCoord(self.ballRoot.getX(), self.ballRoot.getY())
-        MAZE.sendInformation(self.myDirection)
         # find out which direction to go
-        self.direction = MAZE.getDecision()
-        self.pokemonMove(self.pikachu,self.direction)
+        direction = MAZE.getDecision()
+        self.pokemonMove(self.pikachu,direction)
         return Task.cont
 
     def getInformation(self, task):
         # get information on the board
+        # TODO
         self.i += 1 # sample every other call to avoid 
         if self.i % 2 == 0:
             dX = self.ballRoot.getX() - self.oldPos[0]

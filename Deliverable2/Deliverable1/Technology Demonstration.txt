@@ -1,0 +1,18 @@
+
+* Technology Demonstrations
+  In the files I submitted, roam.py and ball.py demonstrate my competency with Panda. 
+  (I also have created my own models either using Blender or directly modifying .egg
+  as text files.)
+
+* Storyboard
+  See Storyboard.jpg
+
+* Code Artifacts
+  In the .zip file I submitted.
+  Or github.com/pavelkang/Term_Project/
+
+* Timesheet
+  log.org in the .zip file I submitted.
+  Or github.com/pavelkang/Term_Project/
+  
+  
