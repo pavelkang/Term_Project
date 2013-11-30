@@ -1,4 +1,7 @@
-# This is a ball-in-maze program
+# This is the single-player mode program
+# Author: Kai Kang
+# Functions groudCollideHandler, wallCollideHandler, and rollTask come from
+# Panda3D sample code with slight modification.
 
 import direct.directbase.DirectStart
 # collision
@@ -29,6 +32,7 @@ from direct.task.Task import Task
 import sys
 
 from math import pi, sin, cos
+
 #self written module
 from load import *
 import TwoDInterface as Two_D
@@ -49,12 +53,18 @@ _FOCUS = [0,0,0]
 _FLAME = ParticleEffect()
 _FLAME.loadConfig("fireish.ptf")
 _EPSILON = 0.001
-class Labryn(DirectObject):
+
+class Labryn(DirectObject): # game class
 
     def setCamera(self, spin):
+        # set camera spin state
         self.spin = spin
     
     def spinCamera(self, task):
+        # deal with spinning the camera
+        # _FOCUS: focus point, changed by panning the camera
+        # CAM_R: radius, changed by zooming
+        # cameraSpinCount: amount of spinning, changed by spinning
         if self.spin == 1: # spin counter-clockwise
             self.cameraSpinCount += 1
             angleDegrees = self.cameraSpinCount
@@ -89,16 +99,17 @@ class Labryn(DirectObject):
             camera.setPos(_FOCUS[0] + self.CAM_R*cos(-pi/2+self.CAM_RAD),
                           _FOCUS[1] + self.CAM_R*sin(-pi/2+self.CAM_RAD),
                           (25.0/12)*self.CAM_R)
-                          
         return Task.cont
 
     def checkMouse(self, task):
+        # get mouse position 
         if base.mouseWatcherNode.hasMouse():
             self.mouseX=base.mouseWatcherNode.getMouseX()
             self.mouseY=base.mouseWatcherNode.getMouseY()
         return Task.cont
 
     def dropRock(self):
+        # when the user clicks, rock is dropped
         if self.pokeMoveChoice == 1: # selected Geodude
             result = MAZE.canDropRock(self.rockX, self.rockY)
             if result != False: # can place rock here
@@ -112,6 +123,7 @@ class Labryn(DirectObject):
                 self.playerCandyCount -= 1
 
     def useFlame(self):
+        # use flame to Pikachu -> cannot move
         self.onFire = True # on fire
         self.playerCandyCount -= 1
         self.pokeStatus = 1
@@ -122,10 +134,12 @@ class Labryn(DirectObject):
         self.updateTwoD()
 
     def useStringShot(self):
+        # use string shot -> speed goes down
         self.pokeStatus = 2
         self.updateTwoD()
 
     def placeRock(self, task):
+        # rock moves with mouse cursor
         if self.pokeMoveChoice == 1: # selected Geodude
             dX,dY = ((self.mouseX-self.rockRefX),
                      (self.mouseY-self.rockRefY))
@@ -138,6 +152,8 @@ class Labryn(DirectObject):
         return Task.cont
     
     def placeRareCandy(self, task):
+        # place rare candy with interval
+        # needs to be improved
         if int(task.time) % 4 == 9 and self.candyOnBoard:
             self.candy.hide()
             self.candyOnBoard = False
@@ -154,8 +170,6 @@ class Labryn(DirectObject):
         self.playerCandyStatus = candyStatus(0, self.playerCandyCount)
         self.pokeCandyStatus.destroy()
         self.pokeCandyStatus = candyStatus(1, self.pokeCandyCount)
-        # update pikachu candy count
-        # TODO
         # update my pokes color     
         if self.playerCandyCount == 0 :
             groupHide(self.myPokesBright)
@@ -165,11 +179,13 @@ class Labryn(DirectObject):
                 self.myPokeName.destroy()
 
     def clearRock(self):
+        # clear rock 
         self.rock.hide()
         self.rockOnMaze = False
         MAZE.clearRock() # clear it in 2D
 
     def clearFlame(self):
+        # clear flame
         self.onFire = False
         self.flame.cleanup()
         self.pokeStatus = 0
@@ -181,6 +197,7 @@ class Labryn(DirectObject):
         self.myPokeName = None
 
     def clearString(self):
+        # clear string shot
         self.pokeStatus = 0
         self.pokeMoveChoice = None
         try:
@@ -220,6 +237,7 @@ class Labryn(DirectObject):
         return Task.cont
     
     def usePokeMove(self, number):
+        # use pokemon move
         if self.playerCandyCount > 0: # have more than one candy
             if number == 1 and self.rockOnMaze == False:
                 if self.pokeMoveChoice != 1: # NONE or other
@@ -257,12 +275,15 @@ class Labryn(DirectObject):
                 self.myPokeName = Two_D.writePokeName(self.pokeMoveChoice)
   
     def loadRareCandy(self):
+        # load rare candy (a box)
+        # needs to be improved
         self.candy = Model_Load.loadRareCandy()
         self.candy.reparentTo(render)
         self.candy.setScale(0.1)
         self.candy.hide()
         
     def eatRareCandy(self, task):
+        # check who eats candy
         if self.candyOnBoard: # candy on board
             if checkEat(self.ballRoot.getX(), self.ballRoot.getY(),
                         self.candy.getX(), self.candy.getY()): # ball eats
@@ -279,6 +300,7 @@ class Labryn(DirectObject):
         return Task.cont
 
     def setFocus(self, changing):
+        # set focus of the camera while panning
         self.changingFocus = changing
         if changing == True: # Just Pressed
             self.referenceX, self.referenceY = self.mouseX, self.mouseY
@@ -286,6 +308,7 @@ class Labryn(DirectObject):
             self.referenceX, self.referenceY = None, None
 
     def resetView(self):
+        # reset the view to default
         self.CAM_R, self.CAM_RAD = 12, 0
         self.cameraSpinCount, self.cameraZoomCount = 0, 0
         # _FOCUS = [0,0,0] does not work WHY???
@@ -296,6 +319,7 @@ class Labryn(DirectObject):
         camera.setHpr(0, -65, 0)
         
     def changeFocus(self, task):
+        # change focus with displacement of mouse cursor
         if (self.changingFocus == True and self.mouseX != None and
             self.mouseY != None ):
             dX, dY = ((self.mouseX - self.referenceX)*0.1,
@@ -341,8 +365,8 @@ class Labryn(DirectObject):
         self.onFire = False
         #######################STRINGSHOT#############################
         self.stringCounter = 0
-        #######################GLOBALS#################################
-        self.i = 0
+        #######################"GLOBALS"#################################
+        self.speedCounter = 0
         self.direction = 's'
         self.myDirection = ['zx', 'zy']
         self.rockCounter  = 0
@@ -373,7 +397,12 @@ class Labryn(DirectObject):
         self.pikachu.reparentTo(render)
         self.pikachu.setScale(0.3)
         endPos = self.MAZE.find("**/end").getPos()
-        self.pikachu.setPos(endPos) 
+        self.pikachu.setPos(endPos)
+        self.pichu = load_model("pichu.egg")
+        self.pichu.reparentTo(render)
+        self.pichu.setScale(0.3)
+        self.pichu.setPos(0,1,1)
+        self.pichu.setHpr(0,70,0)
         
     def light(self):
         ambientLight = AmbientLight("ambientLight")
@@ -509,8 +538,8 @@ class Labryn(DirectObject):
 
     def getInformation(self, task):
         # get information on the board
-        self.i += 1 # sample every other call to avoid 
-        if self.i % 2 == 0:
+        self.speedCounter += 1 # sample every other call to avoid 
+        if self.speedCounter % 2 == 0:
             dX = self.ballRoot.getX() - self.oldPos[0]
             dY = self.ballRoot.getY() - self.oldPos[1]
             if dX < 0 :
@@ -566,6 +595,8 @@ class Labryn(DirectObject):
         self.mainLoop.last = 0
 
     def moveBallWrapper(self, direction):
+        # wrapper for moving the ball
+        # needs to be improved
         if direction == False:
             self.arrowKeyPressed = False
         else:
@@ -573,6 +604,8 @@ class Labryn(DirectObject):
             self.jerkDirection = direction
     
     def moveBall(self, task):
+        # move the ball
+        # a key press changes the jerk
         direction = self.jerkDirection
         if self.arrowKeyPressed == True:
             if direction == "u":
@@ -584,19 +617,7 @@ class Labryn(DirectObject):
             elif direction == "r":
                 self.jerk = Vec3(_JERK,0,0)
         return Task.cont        
-    """      
-    def moveBall(self, task, direction):
-        if self.arrowKeyPressed == True:
-            if direction == "u":
-                self.jerk = Vec3(0,_JERK,0)
-            elif direction == "d":
-                self.jerk = Vec3(0,-_JERK,0)
-            elif direction == "l":
-                self.jerk = Vec3(-_JERK,0,0)
-            elif direction == "r":
-                self.jerk = Vec3(_JERK,0,0)
-        return Task.cont
-    """       
+
     # collision between ray and ground
     # info about the interaction is passed in colEntry
     

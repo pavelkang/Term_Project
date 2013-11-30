@@ -139,5 +139,11 @@
    
 ** Fri Nov 29 22:34:55 EST 2013
    - make every model to work (5 hours)
+     - directly modify .egg file
+     - advanced use of Blender
    - make animation (3 hours)
+     
+** Sat Nov 30 16:40:58 EST 2013
+   - deal with positioning models (1 hour)
+   - 
      

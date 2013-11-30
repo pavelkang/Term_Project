@@ -14,14 +14,37 @@ from panda3d.core import Vec3,Vec4,BitMask32
 from direct.gui.OnscreenText import OnscreenText
 from direct.actor.Actor import Actor
 from direct.particles.ParticleEffect import ParticleEffect
-from direct.showbase.DirectObject import DirectObject
+from direct.interval.IntervalGlobal import Sequence
 from direct.showbase.ShowBase import ShowBase
+
 import random, sys, os, math
 from load import *
 _FLAME = ParticleEffect()
 _FLAME.loadConfig("fireish.ptf")
 _ROT_VEC = (0,90,0)
 SPEED = 0.5
+
+_PIKACHU_POS = (-109, 10, -0.5)
+_PIKACHU_HPR = (180, 0, 0)
+_BULBASAUR_POS = (-109.57, -36.61, 0)
+_BULBASAUR_HPR = ( 120, 90, 0 )
+_PICHU_POS = (-104.57, 11.61, -0.5)
+_PICHU_HPR = (180, 90, 0)
+_CHARMANDER_POS = (-103.57, -28.39, 0.19)
+_CHARMANDER_HPR = (0, 0, 0)
+_GROUDON_POS = (19.57, 9.39, 3.89)
+_GROUDON_HPR = ( 320, 0, 0)
+_SQUIRTLE_POS = (-99.57, -33.39, 0)
+_SQUIRTLE_HPR = (230, 0, 0)
+_CHARIZARD_POS = (-67.57, -44.39, 0.49)
+_CHARIZARD_HPR = (110, 0, 0)
+_BLASTOISE_POS = (-54.57, -44.39, -.49)
+_BLASTOISE_HPR = (80, 0, 0)
+_FLAME_POS = (-103.57, -24.69, 1.69)
+_VENUSAUR_POS = (-44, -20, 0)
+_VENUSAUR_HPR = (0,0,0)
+_DRAGONITE_POS  = (-44.57, 33.39, .51)
+_DRAGONITE_HPR = (0, 0, 0)
 
 # Function to put instructions on the screen.
 def addInstructions(pos, msg):
@@ -51,48 +74,105 @@ class World(ShowBase):
         self.environ.reparentTo(render)
         self.environ.setPos(0,0,0)
 
+    def Hooh(self):
+        """ hooh """
+        self.hoohActor = Actor("anim2hooh.egg",
+                           {"wing":"anim-Anim0.egg"})
+        self.hoohActor.reparentTo(render)
+        self.hoohActor.loop("wing")
+        self.hoohActor.setPos(self.ralphStartPos[0],
+                              self.ralphStartPos[1]+100,
+                              self.ralphStartPos[2]+100)
+        self.hoohActor.setPlayRate(4.0,"wing")
+        self.hoohActor.setHpr(180,90,0)
+
+        start = Point3(self.ralphStartPos[0], self.ralphStartPos[1]+95,
+                       self.ralphStartPos[2]+100)
+        end = Point3(self.ralphStartPos[0], self.ralphStartPos[1]-100,
+                     self.ralphStartPos[2]+100)
+        turnHpr1 = Point3(180,90,0)
+        turnHpr2 = Point3(0,90,0) 
+        hoohPosInt1 = self.hoohActor.posInterval(5.0, start, startPos = end)
+        hoohPosInt2 = self.hoohActor.posInterval(5.0, end, startPos = start)
+        hoohHprInt1 = self.hoohActor.hprInterval(1.0, turnHpr2,
+                                                 startHpr=turnHpr1)
+        hoohHprInt2 = self.hoohActor.hprInterval(1.0, turnHpr1,
+                                                 startHpr=turnHpr2)        
+        self.hoohFly = Sequence(hoohPosInt1,
+                                hoohHprInt1,
+                                hoohPosInt2,
+                                hoohHprInt2,
+                                name="hoohFly")
+        self.hoohFly.loop()        
+
     def loadPokemon(self):
         """ Pikachu """
         self.pikachu = load_model("pikachu.egg")
         self.pikachu.reparentTo(render)
-        self.pikachu.setPos(0,0,4)
-        # self.pikachu.place()
+        self.pikachu.setPos(_PIKACHU_POS)
+        self.pikachu.setHpr(_PIKACHU_HPR)
+
         """ Groudon """
         self.Groudon = load_model("Groudon.egg")
         self.Groudon.reparentTo(render)
-        self.Groudon.setPos(-50,0,0)
+        self.Groudon.setPos(_GROUDON_POS)
+        self.Groudon.setHpr(_GROUDON_HPR)
 
         """ Bulbasaur """
         self.bulbasaur = load_model("bulbasaur.egg")
         self.bulbasaur.reparentTo(render)
-        self.bulbasaur.setPos(self.ralphStartPos)
-        self.bulbasaur.setHpr(_ROT_VEC)
+        self.bulbasaur.setPos(_BULBASAUR_POS)
+        self.bulbasaur.setHpr(_BULBASAUR_HPR)
+
+        """ hooh """
+        self.Hooh()
 
         """ Pichu """
         self.pichu = load_model("pichu.egg")
         self.pichu.reparentTo(render)
-        self.pichu.setPos(self.ralphStartPos)
-        self.pichu.setHpr(_ROT_VEC)
+        self.pichu.setPos(_PICHU_POS)
+        self.pichu.setHpr(_PICHU_HPR)
 
         """ Charmander """
-        self.Char = load_model("char.egg")
-        self.Char.reparentTo(render)
-        self.Char.setPos(self.ralphStartPos[0], self.ralphStartPos[1]-40,
-                         self.ralphStartPos[2])
-        self.Char.setHpr(180,0,0)
+        self.charmander = load_model("char.egg")
+        self.charmander.reparentTo(render)
+        self.charmander.setPos(_CHARMANDER_POS)
+        self.charmander.setHpr(_CHARMANDER_HPR)
 
-        """ Ho-oh """
-        self.hooh = load_model("hooh.egg")
-        self.hooh.reparentTo(render)
-        self.hooh.setPos(self.ralphStartPos[0], self.ralphStartPos[1]-40,
-                         self.ralphStartPos[2]+80)
-        self.hooh.setHpr(_ROT_VEC)
+        """ charizard """
+        self.charizard = load_model("charizard.egg")
+        self.charizard.reparentTo(render)
+        self.charizard.setPos(_CHARIZARD_POS)
+        self.charizard.setHpr(_CHARIZARD_HPR)
+
+        """ blastoise """
+        self.blastoise = load_model("blastoise.egg")
+        self.blastoise.reparentTo(render)
+        self.blastoise.setPos(_BLASTOISE_POS)
+        self.blastoise.setHpr(_BLASTOISE_HPR)
+
+        """ Squirtle """
+        self.squirtle = load_model("squirtle.egg")
+        self.squirtle.reparentTo(render)
+        self.squirtle.setPos(_SQUIRTLE_POS)
+        self.squirtle.setHpr(_SQUIRTLE_HPR)
+
+        """ Dragonite """
+        self.dragonite = load_model("dragonite.egg")
+        self.dragonite.reparentTo(render)
+        self.dragonite.setPos(_DRAGONITE_POS)
+        self.dragonite.setHpr(_DRAGONITE_HPR)
         
         _FLAME.setPos(-107.57, -17.29, 1.69)
-        _FLAME.setScale(0.3)
+        _FLAME.setScale(0.1)
         _FLAME.start(parent=render, renderParent=render)
-        # _FLAME.place()
-        # self.Hooh.place()
+        
+        """ venusaur """
+        self.venusaur = load_model("venusaur.egg")
+        self.venusaur.reparentTo(render)
+        self.venusaur.setPos(_VENUSAUR_POS)
+        self.venusaur.setHpr(_VENUSAUR_HPR)
+        
     def loadRalph(self):
         # Create the main character, Ralph
         basePath = r"../google_drive/ball/data/models/"
@@ -167,7 +247,6 @@ class World(ShowBase):
         else: # instructions are hidden
             self.instStatus = "show"
             groupShow(self.insts)
-            
         
     def __init__(self):
         base.enableParticles()
@@ -177,7 +256,7 @@ class World(ShowBase):
         self.instStatus = "show"
         self.musicCounter = 0
         self.music = load_bgmusic(_BGMUSIC[self.musicCounter])
-        self.volume = 0.5
+        self.volume = 0
         self.music.setVolume(self.volume)
         base.win.setClearColor(Vec4(0,0,0,1))
         self.above = 3.0
