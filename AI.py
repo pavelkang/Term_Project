@@ -97,7 +97,7 @@ def stateHeuristic1(maze, depth):
         # d is distance, cross is more toward crosswalk
         d = euclideanDistance((maze.ballRow,maze.ballCol), (maze.pokeRow,
                                                             maze.pokeCol))
-        cross = _HEURSTIC_BOARD[maze.pokeRow][maze.pokeCol] * 0.2
+        cross = _HEURSTIC_BOARD[maze.pokeRow][maze.pokeCol] * 0
         return d+cross
 
     else:
@@ -110,5 +110,5 @@ def stateHeuristic1(maze, depth):
                 bestHeuristic = heuristic
     # the reason to add stateHeuristic1(maze, depth=_DEPTH) is to
     # break ties by the heurisic of the CURRENT move
-    return bestHeuristic + stateHeuristic1(maze,depth=_DEPTH)
+    return bestHeuristic + stateHeuristic1(maze,depth=_DEPTH)*0.1
 

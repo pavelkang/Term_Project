@@ -137,3 +137,7 @@
 ** Mon Nov 25 23:56:29 EST 2013
    - write AI (1 hour)
    
+** Fri Nov 29 22:34:55 EST 2013
+   - make every model to work (5 hours)
+   - make animation (3 hours)
+     

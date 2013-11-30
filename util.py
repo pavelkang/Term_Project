@@ -18,7 +18,10 @@ def groupShow(group):
 
 def candyStatus(player, number): # 0 is left, 1 is right
     msg = str(number)
-    pos1 = (-1.0, -0.8, -0.8)
+    if player == 0: # this is player
+        pos1 = (0.26, -0.78, -0.8)
+    else:
+        pos1 = (-0.21, -0.78, -0.8)
     return OnscreenText(text=msg, style=1, fg=(1,1,1,1),
-                        pos=pos1, align=TextNode.ALeft, scale = .05)
+                        pos=pos1, align=TextNode.ALeft, scale = .08)
     

@@ -2,6 +2,7 @@
 
 from direct.showbase.DirectObject import DirectObject
 from direct.gui.DirectGui import *
+from panda3d.core import TransparencyAttrib
 import direct.directbase.DirectStart # loader
 
 # for CardMaker
@@ -15,6 +16,15 @@ def load_model(name):
     except:
         raise SystemExit, "Failed to import model %s" %name
     return file
+
+def load_tmodel(name):
+    filePath = os.path.join('..','Downloads','bulbasaur',name)
+    try:
+        file = loader.loadModel(filePath)
+    except:
+        raise SystemExit, "Failed to import model %s" %name
+    return file
+
 
 def load_tex(name):
     filePath = os.path.join('..','google_drive','ball','data','img',name)

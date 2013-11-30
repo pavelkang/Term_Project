@@ -1,9 +1,10 @@
 # go fullscreen
 # from panda3d.core import loadPrcFileData
 #loadPrcFileData('', 'fullscreen 1')
-# loadPrcFileData("", "audio-library-name p3openal_audio")
 import panda3d
 import direct.directbase.DirectStart
+from panda3d.core import *
+from panda3d.core import TransparencyAttrib # enable transparency
 from util import *  # useful helper functions
 from panda3d.core import CollisionTraverser,CollisionNode
 from panda3d.core import CollisionHandlerQueue,CollisionRay
@@ -14,11 +15,12 @@ from direct.gui.OnscreenText import OnscreenText
 from direct.actor.Actor import Actor
 from direct.particles.ParticleEffect import ParticleEffect
 from direct.showbase.DirectObject import DirectObject
+from direct.showbase.ShowBase import ShowBase
 import random, sys, os, math
 from load import *
 _FLAME = ParticleEffect()
 _FLAME.loadConfig("fireish.ptf")
-
+_ROT_VEC = (0,90,0)
 SPEED = 0.5
 
 # Function to put instructions on the screen.
@@ -34,8 +36,8 @@ def addTitle(text):
 _BGMUSIC = ("palette.mp3", "route1.mp3", "themeSong.mp3", "cerulean.mp3",\
                 "catchEmAll.ogg")
 
-class World(DirectObject):
-
+# class World(DirectObject):
+class World(ShowBase):
     def skyBoxLoad(self):
         self.spaceSkyBox = load_model('skybox1.egg')
         self.spaceSkyBox.setScale(150)
@@ -50,21 +52,42 @@ class World(DirectObject):
         self.environ.setPos(0,0,0)
 
     def loadPokemon(self):
+        """ Pikachu """
         self.pikachu = load_model("pikachu.egg")
         self.pikachu.reparentTo(render)
-        self.pikachu.setScale(1)
         self.pikachu.setPos(0,0,4)
         # self.pikachu.place()
+        """ Groudon """
         self.Groudon = load_model("Groudon.egg")
         self.Groudon.reparentTo(render)
-        self.Groudon.setPos(-50,0,0)        
-        # self.Groudon.place()
+        self.Groudon.setPos(-50,0,0)
+
+        """ Bulbasaur """
+        self.bulbasaur = load_model("bulbasaur.egg")
+        self.bulbasaur.reparentTo(render)
+        self.bulbasaur.setPos(self.ralphStartPos)
+        self.bulbasaur.setHpr(_ROT_VEC)
+
+        """ Pichu """
+        self.pichu = load_model("pichu.egg")
+        self.pichu.reparentTo(render)
+        self.pichu.setPos(self.ralphStartPos)
+        self.pichu.setHpr(_ROT_VEC)
+
+        """ Charmander """
         self.Char = load_model("char.egg")
         self.Char.reparentTo(render)
-        self.Char.setScale(1)
         self.Char.setPos(self.ralphStartPos[0], self.ralphStartPos[1]-40,
                          self.ralphStartPos[2])
         self.Char.setHpr(180,0,0)
+
+        """ Ho-oh """
+        self.hooh = load_model("hooh.egg")
+        self.hooh.reparentTo(render)
+        self.hooh.setPos(self.ralphStartPos[0], self.ralphStartPos[1]-40,
+                         self.ralphStartPos[2]+80)
+        self.hooh.setHpr(_ROT_VEC)
+        
         _FLAME.setPos(-107.57, -17.29, 1.69)
         _FLAME.setScale(0.3)
         _FLAME.start(parent=render, renderParent=render)
@@ -156,7 +179,7 @@ class World(DirectObject):
         self.music = load_bgmusic(_BGMUSIC[self.musicCounter])
         self.volume = 0.5
         self.music.setVolume(self.volume)
-        # base.win.setClearColor(Vec4(0,0,0,1))
+        base.win.setClearColor(Vec4(0,0,0,1))
         self.above = 3.0
         # load environment
         self.loadEnviron()

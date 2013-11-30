@@ -152,6 +152,8 @@ class Labryn(DirectObject):
         # update player candy count
         self.playerCandyStatus.destroy()
         self.playerCandyStatus = candyStatus(0, self.playerCandyCount)
+        self.pokeCandyStatus.destroy()
+        self.pokeCandyStatus = candyStatus(1, self.pokeCandyCount)
         # update pikachu candy count
         # TODO
         # update my pokes color     
@@ -267,17 +269,13 @@ class Labryn(DirectObject):
                 self.candy.hide() # eaten
                 self.candyOnBoard = False
                 self.playerCandyCount += 1
-                # self.playerCandyStatus.destroy()
-                # self.playerCandyStatus = candyStatus(0,
-                                       # self.playerCandyCount) # update
-                # print "BALL EATS CANDY"
                 groupShow(self.myPokesBright)
 
             elif checkEat(self.pikachu.getX(), self.pikachu.getY(),
                           self.candy.getX(), self.candy.getY()):
                 self.candy.hide()
                 self.candyOnBoard = False
-                self.pokemonCandyCount += 1
+                self.pokeCandyCount += 1
         return Task.cont
 
     def setFocus(self, changing):
@@ -316,7 +314,7 @@ class Labryn(DirectObject):
         self.background = Two_D.loadBackground()
         base.cam2dp.node().getDisplayRegion(0).setSort(-20)
         self.candyOnBoard = False
-        self.playerCandyCount, self.pokemonCandyCount = 2, 0
+        self.playerCandyCount, self.pokeCandyCount = 0, 0
         ######################Rare Candy###############################
         pokes=['caterpie', 'charmander', 'geodude']
         self.myPokesDark = Two_D.loadMyPokemon_Dark(pokes) # my pokemons
@@ -334,6 +332,9 @@ class Labryn(DirectObject):
         self.myIcon = Two_D.loadMyIcon()
         self.pokeIcon = Two_D.loadPokeIcon()
         self.playerCandyStatus = candyStatus(0, self.playerCandyCount)
+        self.pokeCandyStatus = candyStatus(1, self.pokeCandyCount)
+        self.rareCandyImage = Two_D.loadRareCandyImage()
+        self.pokeRareCandyImage = Two_D.loadRareCandyImage(pos=(-.3,0,-.75))
         #######################FLAMES##################################
         base.enableParticles()
         self.fireCounter = 0
@@ -621,14 +622,11 @@ class Labryn(DirectObject):
         hitDir.normalize()
         hitAngle = norm.dot(hitDir)
     # deal with collision cases
-
         if velAngle > 0 and hitAngle >.995:
             # standard reflection equation
             reflectVec = (norm * norm.dot(inVec*-1)*2) + inVec
-
             # makes velocity half of hitting dead-on
             self.ballV = reflectVec * (curSpeed * (((1-velAngle)*.5)+.5))
-
             # a collision means the ball is already a little bit buried in
             # move it so exactly touching the wall
             disp = (colEntry.getSurfacePoint(render) -
@@ -641,11 +639,9 @@ class Labryn(DirectObject):
         # since the last frame
         dt = task.time - task.last
         task.last = task.time
-
         # If dt is large, then there is a HICCUP
         # ignore the frame
         if dt > .2: return Task.cont
-
         # dispatch which function to handle the collision based on name
         for i in range(self.cHandler.getNumEntries()):
             entry = self.cHandler.getEntry(i)

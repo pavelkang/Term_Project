@@ -8,12 +8,21 @@ from direct.gui.DirectGui import *
 import direct.directbase.DirectStart # loader
 
 _SCALE = (0.16,1,0.1)
-
+_SCALE_MY_ICON = (0.13,1,0.14)
+_SCALE_PIKACHU = (0.13,1,0.14)
+_SCALE_RARE_CANDY = (0.06,1,0.06)
 def loadBackground(imagePath="../google_drive/ball/data/img/ground.jpg"):
     background = OnscreenImage(parent=render2dp, image=imagePath)
-
     return background
 
+def loadRareCandyImage(pos=(0.17,0,-0.75)):
+    path = r"../google_drive/ball/data/img/rareCandy.png"
+    rareCandyImage = OnscreenImage(parent=aspect2d, image=path,
+                                   pos=pos,
+                                   scale=_SCALE_RARE_CANDY)
+    rareCandyImage.setTransparency(TransparencyAttrib.MAlpha)
+    return rareCandyImage
+                                   
 def loadMyPokemon_Dark(pokes=['caterpie', 'charmander', 'geodude']):
     path = r"../google_drive/ball/data/img/myPoke"
     pokePath = path + r"/%s" %(pokes[0]) + r"_dark.png"
@@ -49,15 +58,15 @@ def loadMyPokemon_Bright(pokes=['caterpie', 'charmander', 'geodude']):
 
 def loadMyIcon():
     path = r"../google_drive/ball/data/img/my.png"
-    my = OnscreenImage(parent=aspect2d, image = path, pos=(-1.3,0,-0.8),
-                                                            scale=_SCALE)
+    my = OnscreenImage(parent=aspect2d, image = path,
+                       pos=(0,0,-0.8), scale=_SCALE_MY_ICON)
     my.setTransparency(TransparencyAttrib.MAlpha)
     return my
 
 def loadPokeIcon():
     path = r"../google_drive/ball/data/img/pika.png"
-    pika = OnscreenImage(parent=aspect2d, image = path, pos=(-0.8,0,-0.8),
-                                                            scale=_SCALE)
+    pika = OnscreenImage(parent=aspect2d, image = path, pos=(-0.5,0,-0.8),
+                                                     scale=_SCALE_PIKACHU)
     pika.setTransparency(TransparencyAttrib.MAlpha)
     return pika
 
