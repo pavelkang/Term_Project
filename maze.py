@@ -37,6 +37,8 @@ def findClosest(number, sequence):
 class Maze(object):
     def __init__(self):
         self.board = _BOARD
+        self.ballRow, self.ballCol = 0, 8
+        self.pokeRow, self.pokeCol = 4, 4
 
     def two2Three(self, row, col):
         return ( _COL_LABEL[col],_ROW_LABEL[row], _Z)
@@ -48,9 +50,14 @@ class Maze(object):
         COPY = self.copy()
         COPY.pokeRow += move1[0]
         COPY.pokeCol += move1[1]
-        COPY.pokeX += move1[0]*0.5
-        COPY.pokeY += move1[1]*0.5
+
         return COPY
+
+    def getDistance(self):
+        row0, col0 = self.pokeRow, self.pokeCol
+        row1, col1 = self.ballRow, self.ballCol
+        drow, dcol  = abs(row0-row1), abs(col0-col1)
+        return (drow**2+dcol**2)**.5
     
     def three2Two(self, x, y):
         return (findClosest(y,_ROW_LABEL), findClosest(x,_COL_LABEL))
@@ -82,12 +89,17 @@ class Maze(object):
         return (dX*scaleX, dY*scaleY)
     
     def generateCandyPos(self):
-        row = random.randint(0, _ROWS-1)
-        col = random.randint(0, _COLS-1)
-        while self.board[row][col] != 1: # cannot place here
-            row = random.randint(0, _ROWS-1)
-            col = random.randint(0, _COLS-1)            
-        return self.two2Three(row,col) # 1 is z position
+        self.candyRow = random.randint(0, _ROWS-1)
+        self.candyCol = random.randint(0, _COLS-1)
+        while self.board[self.candyRow][self.candyCol] != 1: # cant place here
+            self.candyRow = random.randint(0, _ROWS-1)
+            self.candyCol = random.randint(0, _COLS-1)
+        self.candyOnMaze = True
+        return self.two2Three(self.candyRow, self.candyCol) # 1 is z position
+
+    def clearCandy(self):
+        # clear candy on 2D representation
+        self.candyOnMaze = False
         
     def setBallCoord(self, x, y):
         self.ballX = x
@@ -136,8 +148,12 @@ class Maze(object):
                                           self.ballDirection)
         COPY.ballRow, COPY.ballCol = self.ballRow, self.ballCol
         COPY.pokeRow, COPY.pokeCol = self.pokeRow, self.pokeCol
+        """
         COPY.ballX, COPY.ballY = self.ballX, self.ballY
         COPY.pokeX, COPY.pokeY = self.pokeX, self.pokeY
+        """
+        COPY.candyRow, COPY.candyCol = self.candyRow, self.candyCol
+        COPY.candyOnMaze = self.candyOnMaze
         return COPY
     
     def getDecision(self):

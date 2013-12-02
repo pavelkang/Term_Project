@@ -138,6 +138,13 @@ class Labryn(DirectObject): # game class
         self.pokeStatus = 2
         self.updateTwoD()
 
+    def useThunder(self):
+        self.onThunder = True
+        self.pokeCandyCount -= 1
+        self.thunder = ParticleEffect()
+        self.thunder.loadConfig("thunder.ptf")
+        self.thunder.start(parent=render, renderParent=render)
+                
     def placeRock(self, task):
         # rock moves with mouse cursor
         if self.pokeMoveChoice == 1: # selected Geodude
@@ -157,6 +164,7 @@ class Labryn(DirectObject): # game class
         if int(task.time) % 4 == 9 and self.candyOnBoard:
             self.candy.hide()
             self.candyOnBoard = False
+            MAZE.clearCandy()
         if int(task.time) % 10 ==  0 and (self.candyOnBoard == False):
             # every 10 seconds
             self.candy.setPos(MAZE.generateCandyPos())
@@ -206,6 +214,12 @@ class Labryn(DirectObject): # game class
             pass
         self.myPokeName = None
 
+    def clearThunder(self):
+        self.onThunder = False
+        try:
+            self.thunder.cleanup()
+        except:
+            pass
         
     def timer(self, task): # deals with moves' lasting effects
         ##############################################################
@@ -224,14 +238,22 @@ class Labryn(DirectObject): # game class
         elif self.stringCounter != 1:
             self.stringCounter = 0
 
+        if self.onThunder: # thunderbolt
+            self.thunderCounter += 1
+        elif self.thunderCounter != 1:
+            self.thunderCounter = 0
+
         ##################################################################
-        if self.rockCounter == 500:
+        if self.rockCounter >= 300:
             self.clearRock()
 
-        if self.fireCounter == 80:
+        if self.fireCounter >= 80:
             self.clearFlame()
 
-        if self.stringCounter == 120:
+        if self.thunderCounter >= 150:
+            self.clearThunder()
+            
+        if self.stringCounter >= 120:
             self.clearString()
             
         return Task.cont
@@ -291,12 +313,13 @@ class Labryn(DirectObject): # game class
                 self.candyOnBoard = False
                 self.playerCandyCount += 1
                 groupShow(self.myPokesBright)
-
+                MAZE.clearCandy()
             elif checkEat(self.pikachu.getX(), self.pikachu.getY(),
                           self.candy.getX(), self.candy.getY()):
                 self.candy.hide()
                 self.candyOnBoard = False
                 self.pokeCandyCount += 1
+                MAZE.clearCandy()                
         return Task.cont
 
     def setFocus(self, changing):
@@ -331,6 +354,13 @@ class Labryn(DirectObject): # game class
                           (25.0/12)*self.CAM_R)
         return Task.cont
 
+    def thunderbolt(self, task):
+        # self.onThunder = True # on fire
+        # self.pokeCandyCount -= 1
+        if self.onThunder == True:
+            self.thunder.setPos(self.ballRoot.getPos())
+        return Task.cont
+    
     def initialize(self):
         #bgmusic = load_bgmusic("palette.mp3")
         #bgmusic.play()
@@ -338,7 +368,7 @@ class Labryn(DirectObject): # game class
         self.background = Two_D.loadBackground()
         base.cam2dp.node().getDisplayRegion(0).setSort(-20)
         self.candyOnBoard = False
-        self.playerCandyCount, self.pokeCandyCount = 0, 0
+        self.playerCandyCount, self.pokeCandyCount = 0, 2
         ######################Rare Candy###############################
         pokes=['caterpie', 'charmander', 'geodude']
         self.myPokesDark = Two_D.loadMyPokemon_Dark(pokes) # my pokemons
@@ -365,8 +395,11 @@ class Labryn(DirectObject): # game class
         self.onFire = False
         #######################STRINGSHOT#############################
         self.stringCounter = 0
-        #######################"GLOBALS"#################################
+        #######################THUNDER################################
+        self.thunderCounter = 0
+        #######################"GLOBALS"##############################
         self.speedCounter = 0
+        self.onThunder = False
         self.direction = 's'
         self.myDirection = ['zx', 'zy']
         self.rockCounter  = 0
@@ -398,11 +431,6 @@ class Labryn(DirectObject): # game class
         self.pikachu.setScale(0.3)
         endPos = self.MAZE.find("**/end").getPos()
         self.pikachu.setPos(endPos)
-        self.pichu = load_model("pichu.egg")
-        self.pichu.reparentTo(render)
-        self.pichu.setScale(0.3)
-        self.pichu.setPos(0,1,1)
-        self.pichu.setHpr(0,70,0)
         
     def light(self):
         ambientLight = AmbientLight("ambientLight")
@@ -462,16 +490,13 @@ class Labryn(DirectObject): # game class
         #self.mazeGround.node().setIntoCollideMask(BitMask32.bit(1))
         self.MAZEGROUND = self.MAZE.find("**/Cube.004")
         self.MAZEGROUND.node().setIntoCollideMask(BitMask32.bit(1))
+
         # add collision to the rock
         cs = CollisionSphere(0, 0, 0, 0.5)
         self.cnodePath = self.rock.attachNewNode(CollisionNode('cnode'))
         self.cnodePath.node().addSolid(cs)
-        self.cnodePath.show()
         self.cnodePath.node().setIntoCollideMask(BitMask32.bit(0))
-        # load the ball and attach it to the scene.
-        # it is on a dummy node so that we can rotate the ball
-        # without rotating the ray that will be attached to it
-
+        
         # CollisionTraversers calculate collisions
         self.cTrav = CollisionTraverser()
         #self.cTrav.showCollisions(render)
@@ -536,6 +561,14 @@ class Labryn(DirectObject): # game class
         self.pokemonMove(self.pikachu,self.direction)
         return Task.cont
 
+    def whatToDo(self, task):
+        # determines when to use thunder
+        if self.pokeCandyCount > 0: # Pikachu has candies
+            if self.distance < 5: # they are close
+                if self.onThunder == False: # not already on thunder
+                    self.useThunder()
+        return Task.cont
+    
     def getInformation(self, task):
         # get information on the board
         self.speedCounter += 1 # sample every other call to avoid 
@@ -562,6 +595,8 @@ class Labryn(DirectObject): # game class
                 # print "going up"
                 self.myDirection[1] = 'u'
             self.oldPos = self.ballRoot.getPos()
+        # calculate distance
+        self.distance = MAZE.getDistance()
         return Task.cont
     
     def start(self):
@@ -588,9 +623,9 @@ class Labryn(DirectObject): # game class
         taskMgr.add(self.spinCamera, "spinCamera")
         taskMgr.add(self.changeFocus, "changeFocus")
         taskMgr.add(self.whereToGo, "whereToGo")
-        # taskMgr.add(lambda task: self.moveBall(task, self.jerkDirection),
-                    # "moveBall")
+        taskMgr.add(self.whatToDo, "whatToDo")
         taskMgr.add(self.moveBall, "moveBall")
+        taskMgr.add(self.thunderbolt, "thunderbolt")
         self.mainLoop = taskMgr.add(self.rollTask, "rollTask")
         self.mainLoop.last = 0
 
@@ -607,7 +642,7 @@ class Labryn(DirectObject): # game class
         # move the ball
         # a key press changes the jerk
         direction = self.jerkDirection
-        if self.arrowKeyPressed == True:
+        if self.arrowKeyPressed == True and (self.onThunder == False):
             if direction == "u":
                 self.jerk = Vec3(0,_JERK,0)
             elif direction == "d":
@@ -667,7 +702,7 @@ class Labryn(DirectObject): # game class
         for i in range(self.cHandler.getNumEntries()):
             entry = self.cHandler.getEntry(i)
             name = entry.getIntoNode().getName()
-       
+
             if name == "Wall.004":
                 self.wallCollideHandler(entry)
             elif name=="Cube.004":
@@ -675,6 +710,7 @@ class Labryn(DirectObject): # game class
             else: 
                 if self.rockOnMaze == True:
                     self.wallCollideHandler(entry)
+                    
         self.accelV += self.jerk
         # move the ball, update the velocity based on accel
         self.ballV += self.accelV * dt * ACCELERATION
@@ -692,5 +728,6 @@ class Labryn(DirectObject): # game class
         self.ball.setQuat(prevRot * newRot)
         return Task.cont # continue the task
 
-w = Labryn()
-run()
+if __name__ == "__main__":    
+    w = Labryn()
+    run()

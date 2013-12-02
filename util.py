@@ -2,7 +2,7 @@ from direct.gui.OnscreenText import OnscreenText
 from panda3d.core import TextNode
 
 def checkEat(x, y, candyX, candyY):
-    epsilon = 0.3
+    epsilon = 0.5
     if abs(x-candyX) <= epsilon:
         if abs(y-candyY) <= epsilon:
             return True

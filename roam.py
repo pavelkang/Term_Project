@@ -163,7 +163,7 @@ class World(ShowBase):
         self.dragonite.setPos(_DRAGONITE_POS)
         self.dragonite.setHpr(_DRAGONITE_HPR)
         
-        _FLAME.setPos(-107.57, -17.29, 1.69)
+        _FLAME.setPos(_FLAME_POS)
         _FLAME.setScale(0.1)
         _FLAME.start(parent=render, renderParent=render)
         

@@ -16,6 +16,8 @@ from panda3d.core import TransparencyAttrib
 import sys
 from load import *
 from pandac.PandaModules import *
+from ball import Labryn
+
 
 def addOptions(text,font,pos):
     return OnscreenText(text=text,pos=pos,scale = .12,style=1,
@@ -85,7 +87,10 @@ class menu(ShowBase):
 
     # these functions deals with dialogs that come after you hit enter
     def diaCom0(self,com):
-        if com == 0: sys.exit()
+        if com == 0:
+            # single player
+            sys.exit()
+
         else: self.dialog0.hide(); self.isDialogOpen = 0
     def diaCom1(self,com):
         if com == 0: sys.exit()
@@ -117,8 +122,7 @@ class menu(ShowBase):
                                            command=self.diaCom3,
                                            buttonValueList=[0,1])
             self.isDialogOpen = 1
-            print self.isDialogOpen
-          
 
-m = menu()
-run()
+if __name__ == "__main__":            
+    m = menu()
+    run()

@@ -1,6 +1,8 @@
 # All Aritifcial Intelligence algorithms
 # AI 0
 # find direction to move opposite to ball's position
+from math import sqrt
+
 _DIR = {'l':(0,-1), 'r':(0,1), 'u':(-1,0), 'd':(1,0), 's':(0,0)}
 
 _HEURSTIC_BOARD = [[1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
@@ -42,7 +44,7 @@ def AI0_OppositeDirection(ballY,ballX,pokeY,pokeX,ballRow,ballCol,
 
 # distance
 def euclideanDistance(x, y):
-    return ((x[0]-y[0])**2+(x[1]-y[1])**2)**0.5
+    return sqrt(pow((x[0]-y[0]),2)+pow((x[1]-y[1]), 2))
 
 def manhattanDistance(x, y):
     return abs(x[0]-y[0]) + abs(x[1]-y[1])
@@ -93,13 +95,26 @@ def AI3_EuclideanDistanceWithSearch(maze):
    return bestMove
 
 def stateHeuristic1(maze, depth):
-    if depth == _DEPTH: # reaches maximum depth
-        # d is distance, cross is more toward crosswalk
+
+    def evalFunc_dist_cross_candy(ballRow, ballCol, pokeRow, pokeCol,
+                                  candyRow, candyCol, candyOnMaze):
+        
         d = euclideanDistance((maze.ballRow,maze.ballCol), (maze.pokeRow,
                                                             maze.pokeCol))
-        cross = _HEURSTIC_BOARD[maze.pokeRow][maze.pokeCol] * 0
-        return d+cross
-
+        
+        cross = _HEURSTIC_BOARD[maze.pokeRow][maze.pokeCol] * 0.1
+        candy = 0
+        if candyOnMaze == True: # there is candy
+            candy = 1.0/(0.001+euclideanDistance((maze.pokeRow, maze.pokeCol),
+                                          (maze.candyRow, maze.candyCol)))
+        return d + cross + candy * .1
+    
+    if depth == _DEPTH: # reaches maximum depth
+        # d is distance, cross is more toward crosswalk
+        return evalFunc_dist_cross_candy(maze.ballRow, maze.ballCol,
+                                         maze.pokeRow, maze.pokeCol,
+                                         maze.candyRow, maze.candyCol,
+                                         maze.candyOnMaze)
     else:
         legals = maze.getLegalDirection()
         bestHeuristic = 0
