@@ -16,7 +16,7 @@ _ROWS, _COLS = 9, 15
 _ROW_LABEL = (4, 3, 2, 1, 0.1, -0.8, -1.8, -2.8, -4)
 _COL_LABEL = (-8.3, -7.2, -6.3, -4.5, -3.3, -2.4, -1.5,
                0, 1.3, 2.5, 3.5, 4.5, 6, 7.2, 8.3)
-_LEFT_COL_LABEL = [i+0.3 for i in _COL_LABEL]
+_LEFT_COL_LABEL = [i+0.25 for i in _COL_LABEL]
 _RIGHT_COL_LABEL = [i-0.4 for i in _COL_LABEL]
 _UP_ROW_LABEL = [i-0.3 for i in _ROW_LABEL]
 _DOWN_ROW_LABEL = [i+0.3 for i in _ROW_LABEL]
@@ -39,6 +39,12 @@ class Maze(object):
         self.board = _BOARD
         self.ballRow, self.ballCol = 0, 8
         self.pokeRow, self.pokeCol = 4, 4
+        self.candyOnMaze = False
+        self.rockOnMaze = False
+        self.rockRow, self.rockCol = 0, 0
+        self.onThunder = False
+        self.playerCandyCount, self.pokeCandyCount = 0, 0
+        self.distance = 0
 
     def two2Three(self, row, col):
         return ( _COL_LABEL[col],_ROW_LABEL[row], _Z)
@@ -50,7 +56,6 @@ class Maze(object):
         COPY = self.copy()
         COPY.pokeRow += move1[0]
         COPY.pokeCol += move1[1]
-
         return COPY
 
     def getDistance(self):
@@ -69,8 +74,18 @@ class Maze(object):
         else:
             return False
         
-    def sendInformation(self, ballDirection):
+    def sendInformation(self, ballDirection, rockOnMaze, onThunder,
+                        playerCandyCount, pokeCandyCount, distance):
         self.ballDirection = ballDirection
+        self.rockOnMaze = rockOnMaze
+        self.onThunder = onThunder
+        self.playerCandyCount = playerCandyCount
+        self.pokeCandyCount = pokeCandyCount
+        self.distance = distance
+
+    def useThunderDecision(self):
+        decision = AI.useThunderAI(self.copy())
+        return decision
         
     def dropRock(self,row, col):
         self.board[row][col] = 2
@@ -97,10 +112,26 @@ class Maze(object):
         self.candyOnMaze = True
         return self.two2Three(self.candyRow, self.candyCol) # 1 is z position
 
+    def __str__(self):
+        return "(%d,%d)" %(self.pokeRow, self.pokeCol)
+
+    def __repr__(self):
+        return "(%d,%d)" %(self.pokeRow, self.pokeCol)
+    
     def clearCandy(self):
         # clear candy on 2D representation
         self.candyOnMaze = False
-        
+
+    def __eq__(self, other):
+        # this is for getting rid of duplicate search states
+
+        return ((self.pokeRow == other.pokeRow) and
+                (self.pokeCol == other.pokeCol))
+
+
+    def __hash__(self):
+        return 10*self.pokeRow + self.pokeCol
+    
     def setBallCoord(self, x, y):
         self.ballX = x
         self.ballY = y
@@ -154,6 +185,12 @@ class Maze(object):
         """
         COPY.candyRow, COPY.candyCol = self.candyRow, self.candyCol
         COPY.candyOnMaze = self.candyOnMaze
+        COPY.rockOnMaze = self.rockOnMaze
+        COPY.rockRow, COPY.rockCol = self.rockRow, self.rockCol
+        COPY.onThunder = self.onThunder
+        COPY.distance = self.distance
+        COPY.playerCandyCount, COPY.pokeCandyCount = (self.playerCandyCount,
+                                                      self.pokeCandyCount)
         return COPY
     
     def getDecision(self):
@@ -175,5 +212,3 @@ class Maze(object):
         decision = AI.AI3_EuclideanDistanceWithSearch(self.copy())
         return decision
 
-    def __str__(self):
-        return str(self.ballRow)

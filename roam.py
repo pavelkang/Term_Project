@@ -1,6 +1,8 @@
 # go fullscreen
-# from panda3d.core import loadPrcFileData
-#loadPrcFileData('', 'fullscreen 1')
+"""
+from panda3d.core import loadPrcFileData
+loadPrcFileData('', 'fullscreen 1')
+"""
 import panda3d
 import direct.directbase.DirectStart
 from panda3d.core import *
@@ -46,6 +48,10 @@ _VENUSAUR_HPR = (0,0,0)
 _DRAGONITE_POS  = (-44.57, 33.39, .51)
 _DRAGONITE_HPR = (0, 0, 0)
 
+_GOLD_PARTICLES = ParticleEffect()
+_GOLD_PARTICLES.loadConfig("thunder.ptf")
+
+
 # Function to put instructions on the screen.
 def addInstructions(pos, msg):
     return OnscreenText(text=msg, style=1, fg=(1,1,1,1),
@@ -56,8 +62,8 @@ def addTitle(text):
     return OnscreenText(text=text, style=1, fg=(1,1,1,1),
                         pos=(1.3,-0.95), align=TextNode.ARight, scale = .07)
 
-_BGMUSIC = ("palette.mp3", "route1.mp3", "themeSong.mp3", "cerulean.mp3",\
-                "catchEmAll.ogg")
+_BGMUSIC = ("catchEmAll.ogg","palette.mp3", "route1.mp3", "themeSong.mp3",
+            "cerulean.mp3")
 
 # class World(DirectObject):
 class World(ShowBase):
@@ -105,6 +111,10 @@ class World(ShowBase):
                                 name="hoohFly")
         self.hoohFly.loop()        
 
+    def gold(self, task):
+        _GOLD_PARTICLES.setPos(self.hoohActor.getPos())
+        return task.cont
+        
     def loadPokemon(self):
         """ Pikachu """
         self.pikachu = load_model("pikachu.egg")
@@ -213,10 +223,10 @@ class World(ShowBase):
 
     def changeVolume(self, direction):
         if direction == 'u' and self.volume < 1:
-            self.volume += 0.1
+            self.volume += 0.05
         else: # direction == 'd'
             if self.volume > 0:
-                self.volume -= 0.1
+                self.volume -= 0.05
         self.music.setVolume(self.volume)
             
     def toggleMusic(self):
@@ -253,9 +263,12 @@ class World(ShowBase):
         self.keyMap = {"left":0, "right":0, "forward":0,"backward":0,
                        "upward":0, "downward":0, "leftward":0,"rightward":0,
                        "cam-left":0, "cam-right":0}
+        _GOLD_PARTICLES.start(parent=render, renderParent=render)
+        _GOLD_PARTICLES.setScale(200)
         self.instStatus = "show"
         self.musicCounter = 0
-        self.music = load_bgmusic(_BGMUSIC[self.musicCounter])
+        self.music = load_bgmusic(_BGMUSIC[0])
+        # self.music.play()
         self.volume = 0
         self.music.setVolume(self.volume)
         base.win.setClearColor(Vec4(0,0,0,1))
@@ -278,6 +291,7 @@ class World(ShowBase):
         taskMgr.add(self.move,"moveTask")
         taskMgr.add(self.setAbove,"setAbove")
         taskMgr.add(self.loadNextMusic, "loadRandomMusic")
+        taskMgr.add(self.gold, "gold")
         # Game state variables
         self.isMoving = False
         # Set up the camera

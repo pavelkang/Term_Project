@@ -8,6 +8,13 @@ def checkEat(x, y, candyX, candyY):
             return True
     return False
 
+def checkWin(x, y, pokeX, pokeY):
+    epsilon = .3
+    if abs(x-pokeX) <= epsilon:
+        if abs(y-pokeY) <= epsilon:
+            return True
+    return False
+
 def groupHide(group):
     for i in group:
         i.hide()

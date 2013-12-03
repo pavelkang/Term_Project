@@ -2,7 +2,11 @@
 # Author: Kai Kang
 # Functions groudCollideHandler, wallCollideHandler, and rollTask come from
 # Panda3D sample code with slight modification.
-
+"""
+from panda3d.core import loadPrcFileData
+loadPrcFileData('', 'fullscreen 1')
+"""
+import random
 import direct.directbase.DirectStart
 # collision
 from panda3d.core import CollisionTraverser,CollisionNode
@@ -42,10 +46,10 @@ import Model_Load
 from util import *
 
 MAZE = maze.Maze()
-ACCELERATION = 70
+ACCELERATION = 140
 MAX_SPEED = 4
 MAX_SPEED_SQ = MAX_SPEED ** 2
-_JERK = 0.08
+_JERK = 0.05
 _SPEED = 0.05
 UP = Vec3(0,0,1) # upward vector
 _FLOOR = 1
@@ -54,12 +58,53 @@ _FLAME = ParticleEffect()
 _FLAME.loadConfig("fireish.ptf")
 _EPSILON = 0.001
 
+_BGMUSIC = ("catchEmAll.ogg","palette.mp3", "route1.mp3", "themeSong.mp3",
+            "cerulean.mp3")
+
+def addInstructions(pos, msg):
+    return OnscreenText(text=msg, style=1, fg=(1,1,1,1),
+                        pos=(-1.3, pos), align=TextNode.ALeft, scale = .05)
+
+def addTitle(text):
+    return OnscreenText(text=text, style=1, fg=(1,1,1,1),
+                        pos=(1.3,-0.95), align=TextNode.ARight, scale = .07)
+
 class Labryn(DirectObject): # game class
 
     def setCamera(self, spin):
         # set camera spin state
         self.spin = spin
-    
+
+    def displayInformation(self):
+        self.title = addTitle("Single Player")
+        self.inst1 = addInstructions(0.95, "[ESC]: Quit")
+        self.inst2 = addInstructions(0.90, "[wasd]: Move")
+        self.inst3 = addInstructions(0.85, "[q/e]: spin camera")
+        self.inst4 = addInstructions(0.80, "[z/c]: zoom in/out")
+        self.inst5 = addInstructions(0.75, "[shift]: hold and pan")
+        self.inst6 = addInstructions(0.70, "[1/2/3]: use moves")
+        self.inst7 = addInstructions(0.65, "[h]: hide instructions")
+        self.insts = [self.title, self.inst1, self.inst2, self.inst3,
+                      self.inst4, self.inst5, self.inst6, self.inst7]
+
+    def hideInstructions(self):
+        if self.instStatus == "show":
+            self.instStatus = "hide"
+            groupHide(self.insts)
+        else: # instructions are hidden
+            self.instStatus = "show"
+            groupShow(self.insts)        
+        
+    def loadNextMusic(self, task):
+        # random load background music
+        if (self.music.status()!=self.music.PLAYING):
+            # not playing
+            self.musicCounter += 1
+            index = self.musicCounter % len(_BGMUSIC)
+            self.music = load_bgmusic(_BGMUSIC[index])
+            self.music.play()
+        return task.cont
+        
     def spinCamera(self, task):
         # deal with spinning the camera
         # _FOCUS: focus point, changed by panning the camera
@@ -101,6 +146,26 @@ class Labryn(DirectObject): # game class
                           (25.0/12)*self.CAM_R)
         return Task.cont
 
+    def checkForWin(self, task):
+        if checkWin(self.pikachu.getX(), self.pikachu.getY(),
+                    self.ballRoot.getX(), self.ballRoot.getY()):
+            self.gameOver = True
+            path = r"../google_drive/ball/data/img/Pokemon_wall.jpg"
+            print "WIN"
+        return Task.cont
+    
+    def pikachuBark(self, task):
+        if self.distance < 3:
+            if random.randint(1,200) == 1:
+            # randomly bark dangerous sound
+                if self.dangerous.status() != self.dangerous.PLAYING:
+                    self.dangerous.play()
+        elif self.distance > 10:
+            if random.randint(1,430) == 1:
+                if self.safe.status() != self.safe.PLAYING:
+                    self.safe.play()
+        return Task.cont
+            
     def checkMouse(self, task):
         # get mouse position 
         if base.mouseWatcherNode.hasMouse():
@@ -144,6 +209,7 @@ class Labryn(DirectObject): # game class
         self.thunder = ParticleEffect()
         self.thunder.loadConfig("thunder.ptf")
         self.thunder.start(parent=render, renderParent=render)
+        self.use.play()
                 
     def placeRock(self, task):
         # rock moves with mouse cursor
@@ -244,7 +310,7 @@ class Labryn(DirectObject): # game class
             self.thunderCounter = 0
 
         ##################################################################
-        if self.rockCounter >= 300:
+        if self.rockCounter >= 100:
             self.clearRock()
 
         if self.fireCounter >= 80:
@@ -262,7 +328,7 @@ class Labryn(DirectObject): # game class
         # use pokemon move
         if self.playerCandyCount > 0: # have more than one candy
             if number == 1 and self.rockOnMaze == False:
-                if self.pokeMoveChoice != 1: # NONE or other
+                if self.pokeMoveChoice == None: # no choice
                     # set to center position
                     centerx =  base.win.getProperties().getXSize()/2
                     centery =  base.win.getProperties().getYSize()/2
@@ -271,21 +337,30 @@ class Labryn(DirectObject): # game class
                     self.rockRefX, self.rockRefY = 0,0
                     self.rock.show()
                     self.rock.setPos(0,0,1)
-                else: # already 1
+                elif self.pokeMoveChoice != 1:
+                    pass
+
+                else: # self.pokeMoveChoice is already 1, cancel the choice
                     self.pokeMoveChoice = None
                     self.clearRock() # clear rock
             elif number == 2:
-                if self.pokeMoveChoice != 2:
+                if self.pokeMoveChoice == None:
                     self.pokeMoveChoice = 2
                     self.useFlame()
+                elif self.pokeMoveChoice != 2:
+                    pass
                 else:
                     self.pokeMoveChoice = None
+
             elif number == 3:
-                if self.pokeMoveChoice != 3:
+                if self.pokeMoveChoice == None:
                     self.pokeMoveChoice = 3
                     self.useStringShot()
-                else:
+                elif self.pokeMoveChoice != 3:
+                    pass
+                else: # already 3
                     self.pokeMoveChoice = None
+
             if self.pokeMoveChoice == None: # no choice
                 if self.myPokeName != None: # there is a name on board
                     self.myPokeName.destroy() # kill it
@@ -311,14 +386,16 @@ class Labryn(DirectObject): # game class
                         self.candy.getX(), self.candy.getY()): # ball eats
                 self.candy.hide() # eaten
                 self.candyOnBoard = False
-                self.playerCandyCount += 1
+                if self.playerCandyCount < 3:
+                    self.playerCandyCount += 1
                 groupShow(self.myPokesBright)
                 MAZE.clearCandy()
             elif checkEat(self.pikachu.getX(), self.pikachu.getY(),
                           self.candy.getX(), self.candy.getY()):
                 self.candy.hide()
                 self.candyOnBoard = False
-                self.pokeCandyCount += 1
+                if self.pokeCandyCount < 3:
+                    self.pokeCandyCount += 1
                 MAZE.clearCandy()                
         return Task.cont
 
@@ -355,20 +432,20 @@ class Labryn(DirectObject): # game class
         return Task.cont
 
     def thunderbolt(self, task):
-        # self.onThunder = True # on fire
-        # self.pokeCandyCount -= 1
         if self.onThunder == True:
             self.thunder.setPos(self.ballRoot.getPos())
         return Task.cont
     
     def initialize(self):
-        #bgmusic = load_bgmusic("palette.mp3")
-        #bgmusic.play()
-
+        self.musicCounter = 0
+        self.music = load_bgmusic(_BGMUSIC[0])
         self.background = Two_D.loadBackground()
         base.cam2dp.node().getDisplayRegion(0).setSort(-20)
         self.candyOnBoard = False
-        self.playerCandyCount, self.pokeCandyCount = 0, 2
+        self.playerCandyCount, self.pokeCandyCount = 0, 0
+        self.gameOver = False
+        self.displayInformation()
+        self.instStatus = "show"
         ######################Rare Candy###############################
         pokes=['caterpie', 'charmander', 'geodude']
         self.myPokesDark = Two_D.loadMyPokemon_Dark(pokes) # my pokemons
@@ -397,6 +474,10 @@ class Labryn(DirectObject): # game class
         self.stringCounter = 0
         #######################THUNDER################################
         self.thunderCounter = 0
+        #######################SOUND##################################
+        self.dangerous = load_sound("pikachu_d.wav")
+        self.safe = load_sound("pikachu_s1.wav")
+        self.use = load_sound("pikachu_u.wav")
         #######################"GLOBALS"##############################
         self.speedCounter = 0
         self.onThunder = False
@@ -413,7 +494,7 @@ class Labryn(DirectObject): # game class
         # direction the ball is going
         self.jerkDirection = None
         base.disableMouse()
-        self.jerk = (0,0,0)
+        self.jerk = Vec3(0,0,0)
         self.MAZE = Model_Load.loadLabyrinth()
         Control.keyControl(self)
         self.loadPokemonLevel1()
@@ -550,12 +631,13 @@ class Labryn(DirectObject): # game class
     def whereToGo(self, task):
         # this returns the direction pokemon should go
         # tell MAZE pokemon and ball's board position
-        #print self.myDirection
         self.pokemonMove(self.pikachu, self.direction)
         MAZE.setPokeCoord(self.pikachu.getX(), self.pikachu.getY(),
                           self.pokemonDirection)
         MAZE.setBallCoord(self.ballRoot.getX(), self.ballRoot.getY())
-        MAZE.sendInformation(self.myDirection)
+        MAZE.sendInformation(self.myDirection, self.rockOnMaze,
+                             self.onThunder, self.playerCandyCount,
+                             self.pokeCandyCount, self.distance)
         # find out which direction to go
         self.direction = MAZE.getDecision()
         self.pokemonMove(self.pikachu,self.direction)
@@ -564,9 +646,9 @@ class Labryn(DirectObject): # game class
     def whatToDo(self, task):
         # determines when to use thunder
         if self.pokeCandyCount > 0: # Pikachu has candies
-            if self.distance < 5: # they are close
-                if self.onThunder == False: # not already on thunder
-                    self.useThunder()
+            decision = MAZE.useThunderDecision()
+            if decision == True:
+                self.useThunder()
         return Task.cont
     
     def getInformation(self, task):
@@ -584,7 +666,6 @@ class Labryn(DirectObject): # game class
             else:
                 # print "going right"
                 self.myDirection[0] = 'r'
-
             if dY < 0 :
                 # print "going down"
                 self.myDirection[1] = 'd'
@@ -616,6 +697,7 @@ class Labryn(DirectObject): # game class
         taskMgr.remove("rollTask")
         taskMgr.add(self.placeRock, "placeRock")
         taskMgr.add(self.timer, "timer")
+        taskMgr.add(self.loadNextMusic, "loadNextMusic")
         taskMgr.add(self.getInformation, "getInformation")
         taskMgr.add(self.eatRareCandy, "eatRareCandy")
         taskMgr.add(self.placeRareCandy, "placeRareCandy")
@@ -626,6 +708,8 @@ class Labryn(DirectObject): # game class
         taskMgr.add(self.whatToDo, "whatToDo")
         taskMgr.add(self.moveBall, "moveBall")
         taskMgr.add(self.thunderbolt, "thunderbolt")
+        taskMgr.add(self.checkForWin, "checkForWin")
+        taskMgr.add(self.pikachuBark, "pikachuBark")
         self.mainLoop = taskMgr.add(self.rollTask, "rollTask")
         self.mainLoop.last = 0
 
@@ -642,7 +726,7 @@ class Labryn(DirectObject): # game class
         # move the ball
         # a key press changes the jerk
         direction = self.jerkDirection
-        if self.arrowKeyPressed == True and (self.onThunder == False):
+        if self.arrowKeyPressed == True and self.onThunder == False:
             if direction == "u":
                 self.jerk = Vec3(0,_JERK,0)
             elif direction == "d":
@@ -651,6 +735,8 @@ class Labryn(DirectObject): # game class
                 self.jerk = Vec3(-_JERK,0,0)
             elif direction == "r":
                 self.jerk = Vec3(_JERK,0,0)
+        elif self.onThunder == True:
+            self.jerk = self.jerk
         return Task.cont        
 
     # collision between ray and ground
@@ -702,12 +788,11 @@ class Labryn(DirectObject): # game class
         for i in range(self.cHandler.getNumEntries()):
             entry = self.cHandler.getEntry(i)
             name = entry.getIntoNode().getName()
-
             if name == "Wall.004":
                 self.wallCollideHandler(entry)
             elif name=="Cube.004":
                 self.groundCollideHandler(entry)
-            else: 
+            else:
                 if self.rockOnMaze == True:
                     self.wallCollideHandler(entry)
                     
@@ -726,8 +811,8 @@ class Labryn(DirectObject): # game class
         axis = UP.cross(self.ballV)
         newRot = LRotationf(axis, 45.5 * dt * self.ballV.length())
         self.ball.setQuat(prevRot * newRot)
-        return Task.cont # continue the task
+        return Task.cont # continue the task     
 
-if __name__ == "__main__":    
+if __name__ == "__main__":   
     w = Labryn()
     run()
