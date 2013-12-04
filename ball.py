@@ -33,29 +33,31 @@ from direct.interval.LerpInterval import LerpFunc
 from direct.interval.FunctionInterval import Func,Wait
 # Task
 from direct.task.Task import Task
-import sys
+import sys, time
 
 from math import pi, sin, cos
 
 #self written module
 from load import *
-import TwoDInterface as Two_D
+from TwoDInterface import *
+# import TwoDInterface as Two_D
 import maze
 import Key_Control as Control
 import Model_Load
 from util import *
+from direct.showbase.ShowBase import ShowBase
 
 MAZE = maze.Maze()
 ACCELERATION = 140
 MAX_SPEED = 4
 MAX_SPEED_SQ = MAX_SPEED ** 2
-_JERK = 0.05
+_JERK = 0.06
 _SPEED = 0.05
 UP = Vec3(0,0,1) # upward vector
 _FLOOR = 1
 _FOCUS = [0,0,0]
-_FLAME = ParticleEffect()
-_FLAME.loadConfig("fireish.ptf")
+# _FLAME = ParticleEffect()
+# _FLAME.loadConfig("fireish.ptf")
 _EPSILON = 0.001
 
 _BGMUSIC = ("catchEmAll.ogg","palette.mp3", "route1.mp3", "themeSong.mp3",
@@ -69,8 +71,28 @@ def addTitle(text):
     return OnscreenText(text=text, style=1, fg=(1,1,1,1),
                         pos=(1.3,-0.95), align=TextNode.ARight, scale = .07)
 
-class Labryn(DirectObject): # game class
+def addEndMessage(score):
+    msg = "Game Over"
+    OnscreenText(text=msg, style=1, fg=(1,1,1,1),
+                 pos=(0, .8), align=TextNode.ACenter, scale = .3)
+    msg1 = "Your Score: %.2f" %(score/100.0)
+    OnscreenText(text=msg1, style=1, fg=(1,1,1,1),
+                 pos=(0, .6), align=TextNode.ACenter, scale = .2)    
 
+def printRank(i, string):
+    [TIME, DATE] = string.split(',')
+    # print TIME
+    defaultPos, delta = .2, -.1
+    OnscreenText(text=TIME, style=1, fg=(1,1,1,1),
+                 pos=(-.5, defaultPos+i*delta), align=TextNode.ACenter,
+                 scale = .05)
+    OnscreenText(text=DATE, style=1, fg=(1,1,1,1),
+                 pos=(.2, defaultPos+i*delta), align=TextNode.ACenter,
+                 scale = .05)    
+    
+
+# class Labryn(DirectObject): # game class
+class Labryn(ShowBase):
     def setCamera(self, spin):
         # set camera spin state
         self.spin = spin
@@ -146,12 +168,45 @@ class Labryn(DirectObject): # game class
                           (25.0/12)*self.CAM_R)
         return Task.cont
 
+    def takeRecord(self):
+        def myCMP(aString, bString):
+            a = float(aString.split(',')[0])
+            b = float(bString.split(',')[0])
+            return int(10*(a - b))
+        
+        msg = "%.2f,%s\n" %(self.clock/100.0, time.ctime())
+        with open('record.txt') as f:
+            data = f.readlines()
+        # if has no previous data
+        if len(data) == 0:
+            data.append(msg)
+            with open('record.txt','w') as f:
+                f.writelines(data)
+        else:
+            data.append(msg)
+            processedData = sorted(data, myCMP)
+            with open('record.txt', 'w') as f:
+                f.writelines(processedData)
+
+    def printResults(self):
+        addEndMessage(self.clock)
+        with open('record.txt') as f:
+            data = f.readlines()
+        for i in xrange(0, len(data)):
+            if i < 5: # only print the top 5
+                string = data[i]
+                printRank(i, string)
+        
     def checkForWin(self, task):
-        if checkWin(self.pikachu.getX(), self.pikachu.getY(),
-                    self.ballRoot.getX(), self.ballRoot.getY()):
+        if (checkWin(self.pikachu.getX(), self.pikachu.getY(),
+                    self.ballRoot.getX(), self.ballRoot.getY()) and
+            self.gameOver == False):
+            self.takeRecord()
+            self.printResults()
             self.gameOver = True
-            path = r"../google_drive/ball/data/img/Pokemon_wall.jpg"
+            # if top 10, if top 1,
             print "WIN"
+            # print previous best 10 results
         return Task.cont
     
     def pikachuBark(self, task):
@@ -187,6 +242,9 @@ class Labryn(DirectObject): # game class
                 self.updateTwoD()
                 self.playerCandyCount -= 1
 
+    def restart(self):
+        sys.exit()
+                
     def useFlame(self):
         # use flame to Pikachu -> cannot move
         self.onFire = True # on fire
@@ -289,6 +347,7 @@ class Labryn(DirectObject): # game class
         
     def timer(self, task): # deals with moves' lasting effects
         ##############################################################
+        self.clock += 1
         if self.rockOnMaze: # rock on maze
             self.rockCounter += 1
         elif self.rockCounter != 1: # rock not on maze, counter not cleared
@@ -309,6 +368,9 @@ class Labryn(DirectObject): # game class
         elif self.thunderCounter != 1:
             self.thunderCounter = 0
 
+        if self.gameOver == True: # game is over
+            self.gameOverCounter += 1
+
         ##################################################################
         if self.rockCounter >= 100:
             self.clearRock()
@@ -321,6 +383,9 @@ class Labryn(DirectObject): # game class
             
         if self.stringCounter >= 120:
             self.clearString()
+
+        if self.gameOverCounter >= 800: # quit the game
+            sys.exit()
             
         return Task.cont
     
@@ -369,7 +434,7 @@ class Labryn(DirectObject): # game class
             else: # there is a choice
                 if self.myPokeName != None:
                     self.myPokeName.destroy()
-                self.myPokeName = Two_D.writePokeName(self.pokeMoveChoice)
+                self.myPokeName = writePokeName(self.pokeMoveChoice)
   
     def loadRareCandy(self):
         # load rare candy (a box)
@@ -390,7 +455,7 @@ class Labryn(DirectObject): # game class
                     self.playerCandyCount += 1
                 groupShow(self.myPokesBright)
                 MAZE.clearCandy()
-            elif checkEat(self.pikachu.getX(), self.pikachu.getY(),
+            elif checkEatPika(self.pikachu.getX(), self.pikachu.getY(),
                           self.candy.getX(), self.candy.getY()):
                 self.candy.hide()
                 self.candyOnBoard = False
@@ -435,11 +500,26 @@ class Labryn(DirectObject): # game class
         if self.onThunder == True:
             self.thunder.setPos(self.ballRoot.getPos())
         return Task.cont
+
+    def displayClock(self, task):
+        msg = "Time: %.2f" %(self.clock/100.0)
+        if self.clockMSG == None:
+            self.clockMSG = OnscreenText(text=msg, style=1, fg=(1,1,1,1),
+                                         pos=(1.3, .95), align=TextNode.ALeft,
+                                         scale = .05)
+        else:
+            self.clockMSG.destroy()
+            self.clockMSG = OnscreenText(text=msg, style=1, fg=(1,1,1,1),
+                                         pos=(1.3, .95), align=TextNode.ALeft,
+                                         scale = .05)
+        return task.cont
     
     def initialize(self):
-        self.musicCounter = 0
+        self.musicCounter, self.clock = 0, 0
+        self.gameOverCounter = 0
+        self.clockMSG = None
         self.music = load_bgmusic(_BGMUSIC[0])
-        self.background = Two_D.loadBackground()
+        self.background = loadBackground()
         base.cam2dp.node().getDisplayRegion(0).setSort(-20)
         self.candyOnBoard = False
         self.playerCandyCount, self.pokeCandyCount = 0, 0
@@ -448,8 +528,8 @@ class Labryn(DirectObject): # game class
         self.instStatus = "show"
         ######################Rare Candy###############################
         pokes=['caterpie', 'charmander', 'geodude']
-        self.myPokesDark = Two_D.loadMyPokemon_Dark(pokes) # my pokemons
-        self.myPokesBright = Two_D.loadMyPokemon_Bright()
+        self.myPokesDark = loadMyPokemon_Dark(pokes) # my pokemons
+        self.myPokesBright = loadMyPokemon_Bright()
         groupHide(self.myPokesBright)
         self.loadRareCandy() # load rare candy
         ######################Camera Initialization####################
@@ -460,12 +540,12 @@ class Labryn(DirectObject): # game class
         self.changingFocus = False
         self.spin = 0
         #######################ICONS###################################
-        self.myIcon = Two_D.loadMyIcon()
-        self.pokeIcon = Two_D.loadPokeIcon()
+        self.myIcon = loadMyIcon()
+        self.pokeIcon = loadPokeIcon()
         self.playerCandyStatus = candyStatus(0, self.playerCandyCount)
         self.pokeCandyStatus = candyStatus(1, self.pokeCandyCount)
-        self.rareCandyImage = Two_D.loadRareCandyImage()
-        self.pokeRareCandyImage = Two_D.loadRareCandyImage(pos=(-.3,0,-.75))
+        self.rareCandyImage = loadRareCandyImage()
+        self.pokeRareCandyImage = loadRareCandyImage(pos=(-.3,0,-.75))
         #######################FLAMES##################################
         base.enableParticles()
         self.fireCounter = 0
@@ -561,8 +641,9 @@ class Labryn(DirectObject): # game class
         m.setSpecular(Vec4(1,1,1,1))
         m.setShininess(96)
         self.ball.setMaterial(m,1)
-
+        
     def __init__(self):
+
         self.initialize()
         self.WALLS = self.MAZE.find("**/Wall.004")
         self.WALLS.node().setIntoCollideMask(BitMask32.bit(0))
@@ -696,6 +777,7 @@ class Labryn(DirectObject): # game class
         # create the movement task, make sure its not already running
         taskMgr.remove("rollTask")
         taskMgr.add(self.placeRock, "placeRock")
+        taskMgr.add(self.displayClock, "displayClock")
         taskMgr.add(self.timer, "timer")
         taskMgr.add(self.loadNextMusic, "loadNextMusic")
         taskMgr.add(self.getInformation, "getInformation")

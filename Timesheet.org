@@ -150,3 +150,6 @@
 ** Sun Dec  1 21:13:55 EST 2013
    - ai with pikachu going towards the candy (1 hour)
    - deal with rocks
+
+** Wed Dec  4 12:20:50 EST 2013
+   - added highscore feature

@@ -40,6 +40,7 @@ class Maze(object):
         self.ballRow, self.ballCol = 0, 8
         self.pokeRow, self.pokeCol = 4, 4
         self.candyOnMaze = False
+        self.candyRow, self.candyCol = 0, 0
         self.rockOnMaze = False
         self.rockRow, self.rockCol = 0, 0
         self.onThunder = False
@@ -183,7 +184,8 @@ class Maze(object):
         COPY.ballX, COPY.ballY = self.ballX, self.ballY
         COPY.pokeX, COPY.pokeY = self.pokeX, self.pokeY
         """
-        COPY.candyRow, COPY.candyCol = self.candyRow, self.candyCol
+        if self.candyOnMaze:
+            COPY.candyRow, COPY.candyCol = self.candyRow, self.candyCol
         COPY.candyOnMaze = self.candyOnMaze
         COPY.rockOnMaze = self.rockOnMaze
         COPY.rockRow, COPY.rockCol = self.rockRow, self.rockCol

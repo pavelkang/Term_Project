@@ -3,9 +3,9 @@ from direct.gui.OnscreenText import OnscreenText
 from panda3d.core import TransparencyAttrib
 from panda3d.core import *
 from direct.showbase.ShowBase import ShowBase
-from direct.showbase.DirectObject import DirectObject
+# from direct.showbase.DirectObject import DirectObject
 from direct.gui.DirectGui import *
-import direct.directbase.DirectStart # loader
+# import direct.directbase.DirectStart # loader
 
 _SCALE = (0.16,1,0.1)
 _SCALE_MY_ICON = (0.13,1,0.14)
@@ -69,12 +69,12 @@ def loadPokeIcon():
                                                      scale=_SCALE_PIKACHU)
     pika.setTransparency(TransparencyAttrib.MAlpha)
     return pika
-
 font = loader.loadFont('Ketchum.ttf')
 font.setPixelsPerUnit(50) # increase font quality
 
 def writePokeName(number):
     # 1 is charmander, 2 is geodude, 3 is caterpien
+
     MSG = {1:"Geodude", 2:"Charmander", 3:"Caterpie"}
     POS = {1:(.5, -.95, -0.8), 2:(.75,-.95,-.8),3:(1.1,-.95,-.8)}
     return OnscreenText(text=MSG[number], style=1, fg=(1,1,1,1), font = font,

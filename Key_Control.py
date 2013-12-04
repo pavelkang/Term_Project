@@ -27,3 +27,4 @@ def keyControl(self):
     self.accept("2", self.usePokeMove, [2])     
     self.accept("3", self.usePokeMove, [3])
     self.accept("h", self.hideInstructions)
+    self.accept("k", self.restart)

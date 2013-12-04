@@ -129,10 +129,11 @@ def stateHeuristic1(maze, depth):
                                        candyRow, candyCol, candyOnMaze,
                                        rockOnMaze, rockRow, rockCol,
                                        onThunder):
+        d = euclideanDistance((pokeRow, pokeCol), (ballRow, ballCol))
+        if d < 3:
+                # too close
+            return d        
         if onThunder == True: # go to candy if on Thunder
-            d = euclideanDistance((maze.ballRow,maze.ballCol), (maze.pokeRow,
-                                                                maze.pokeCol))
-        
             cross = _HEURSTIC_BOARD[maze.pokeRow][maze.pokeCol] * 0.1
             candy = 0
             if candyOnMaze == True: # there is candy
@@ -144,21 +145,16 @@ def stateHeuristic1(maze, depth):
             if rockOnMaze == True: # there is rock
                 rock =  euclideanDistance((maze.pokeRow, maze.pokeCol),
                                           (maze.rockRow, maze.rockCol))
-            return d + cross*10 + candy*100 + rock*.2
+            return d + cross + candy*100 + rock*.2
         else: # not on thunder
             if candyOnMaze == True and aheadToCandy(maze.pokeRow,
                             maze.pokeCol, maze.candyRow,
                             maze.candyCol, maze.ballRow, maze.ballCol):
-                d = euclideanDistance((maze.ballRow,maze.ballCol),
-                                      (maze.pokeRow,maze.pokeCol))
-
                 candy= 1.0/(0.001+euclideanDistance((maze.pokeRow,
                                                       maze.pokeCol),
                                                      (maze.candyRow,
                                                       maze.candyCol)))
-                return d + candy
-            d = euclideanDistance((maze.ballRow,maze.ballCol), (maze.pokeRow,
-                                                                maze.pokeCol))
+                return d + candy*2
             cross = _HEURSTIC_BOARD[maze.pokeRow][maze.pokeCol] * 0.1
             candy = 0
             if candyOnMaze == True: # there is candy
@@ -170,10 +166,8 @@ def stateHeuristic1(maze, depth):
             if rockOnMaze == True: # there is rock
                 rock =  euclideanDistance((maze.pokeRow, maze.pokeCol),
                                           (maze.rockRow, maze.rockCol))
-            if euclideanDistance((pokeRow, pokeCol), (ballRow, ballCol)) < 4:
-                # too close
-                return d
-            return d + cross*1 + candy * .1 + rock * 2
+
+            return d + cross + candy * .1 + rock * 2
     
     if depth == _DEPTH: # reaches maximum depth
         # d is distance, cross is more toward crosswalk
@@ -212,11 +206,34 @@ def AI3_EuclideanDistanceWithSearch(maze):
 def useThunderAI(maze):
     if maze.onThunder == True:
         return False
+
+    # when player and pikachu are competing for a candy, player is not too
+    # close to the candy, use thunderbolt and get that candy.
+    if maze.candyOnMaze:
+        playerCandy = euclideanDistance((maze.ballRow, maze.ballCol),
+                                        (maze.candyRow, maze.candyCol))
+        pokeCandy = euclideanDistance((maze.pokeRow, maze.pokeCol),
+                                      (maze.candyRow, maze.candyCol))
+        diff = playerCandy - pokeCandy
+        if -4<diff<2: # if player too close or pokemon too close, no need
+            return True
+
     if maze.playerCandyCount == 0: # player has no candy
         return False
     else: # player has candy
         if maze.distance < 4:
-            print "AAAAA"
             return True
         else:
             return False
+"""
+when player and pikachu are competing for a candy, player is not too
+close to the candy, use thunderbolt and get that candy.
+
+if maze.candyOnBoard:
+    playerCandy = euclideanDistance((maze.ballRow, maze.ballCol),
+                                    (maze.candyRow, maze.candyCol))
+    pokeCandy = euclideanDistance((maze.pokeRow, maze.pokeCol),
+                                    (maze.candyRow, maze.candyCol))
+    if pokeCandy + 4 > playerCandy: # player not too close to candy
+        return True
+"""

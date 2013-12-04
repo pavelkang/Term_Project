@@ -3,8 +3,8 @@ from direct.particles.ParticleEffect import ParticleEffect
 
 from load import *
 
-_FLAME = ParticleEffect()
-_FLAME.loadConfig("fireish.ptf")
+# _FLAME = ParticleEffect()
+# _FLAME.loadConfig("fireish.ptf")
 
 def loadRareCandy():
     candy = load_model("Gold.egg")

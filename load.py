@@ -1,10 +1,10 @@
 # This module helps load source
 
-from direct.showbase.DirectObject import DirectObject
+# from direct.showbase.DirectObject import DirectObject
 from direct.gui.DirectGui import *
 from panda3d.core import TransparencyAttrib
-import direct.directbase.DirectStart # loader
-
+# import direct.directbase.DirectStart # loader
+from direct.showbase.ShowBase import ShowBase
 # for CardMaker
 from panda3d.core import *
 import os
@@ -36,10 +36,12 @@ def load_tex(name):
 
 def load_sound(name):
     filePath = os.path.join('..','google_drive','ball','data','sound',name)
+
     try:
         file = loader.loadSfx(filePath)
     except:
-        raise SystemExit, "Failed to import texture %s" %name
+        raise SystemExit, "Failed to import sound %s" %name
+
     return file
 
 def load_bgmusic(name):
@@ -47,7 +49,8 @@ def load_bgmusic(name):
     try:
         file = loader.loadSfx(filePath)
     except:
-        raise SystemExit, "Failed to import texture %s" %name
+        raise SystemExit, "Failed to import bgmusic %s" %name
+
     return file
 
 

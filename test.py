@@ -1,17 +1,31 @@
-from direct.showbase.ShowBase import ShowBase
-from direct.actor.Actor import Actor
-
-class MyApp(ShowBase):
-    def __init__(self):
-        ShowBase.__init__(self)
-        self.environ = self.loader.loadModel("models/environment")
-        self.environ.reparentTo(self.render)
-        self.environ.setScale(.25,.25,.25)
-        self.environ.setPos(-8,42,0)
-        self.actor = Actor("anim2hooh.egg",
-                           {"wing":"anim-Anim0.egg"})
-        self.actor.reparentTo(render)
-        self.actor.loop("wing")
-
-app = MyApp()
-app.run()
+from direct.fsm.FSM import FSM
+ 
+class AvatarFSM(FSM):
+    def __init__(self):#optional because FSM already defines __init__
+        #if you do write your own, you *must* call the base __init__ :
+        FSM.__init__(self, 'AvatarFSM')
+        ##do your init code here
+ 
+    def enterWalk(self):
+        avatar.loop('walk')
+        footstepsSound.play()
+        enableDoorCollisions()
+ 
+    def exitWalk(self):
+        avatar.stop()
+        footstepsSound.stop()
+        disableDoorCollisions()
+ 
+    def enterSwim(self):
+        avatar.loop('swim')
+        underwaterSound.play()
+        render.setFog(underwaterFog)
+        startAirTimer()
+ 
+    def exitSwim(self):
+        avatar.stop()
+        underwaterSound.stop()
+        render.clearFog()
+        stopAirTimer()
+ 
+myfsm = AvatarFSM()

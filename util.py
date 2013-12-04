@@ -8,6 +8,13 @@ def checkEat(x, y, candyX, candyY):
             return True
     return False
 
+def checkEatPika(x, y, candyX, candyY):
+    epsilon = .7
+    if abs(x-candyX) <= epsilon:
+        if abs(y-candyY) <= epsilon:
+            return True
+    return False
+
 def checkWin(x, y, pokeX, pokeY):
     epsilon = .3
     if abs(x-pokeX) <= epsilon:
