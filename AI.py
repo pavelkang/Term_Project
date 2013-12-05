@@ -2,6 +2,7 @@
 # AI 0
 # find direction to move opposite to ball's position
 from math import sqrt
+import random
 
 _DIR = {'l':(0,-1), 'r':(0,1), 'u':(-1,0), 'd':(1,0), 's':(0,0)}
 
@@ -9,7 +10,7 @@ _HEURSTIC_BOARD = [[1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
                    [1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1],
                    [1, 0, 1, 2, 1, 3, 1, 2, 1, 3, 1, 2, 1, 0, 1],
                    [1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1],
-                   [2, 1, 3, 1, 1, 2, 0, 1, 0, 2, 1, 1, 3, 1, 1],
+                   [2, 1, 3, 1, 1, 2, 0, 0.1, 0, 2, 1, 1, 3, 1, 1],
                    [1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1],
                    [1, 0, 1, 2, 1, 3, 1, 1, 1, 3, 1, 2, 1, 0, 1],
                    [1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1],
@@ -96,12 +97,15 @@ def AI1_EuclideanDistance(ballRow, ballCol, pokeRow, pokeCol, legals):
 def AI2_ManhattanDistance(ballRow, ballCol, pokeRow, pokeCol, legals):
     bestHeuristic = 0
     bestMove = None
+
     for move in legals:
         heuristic = evaluationFunc2(ballRow, ballCol, pokeRow, pokeCol,
                                   _DIR[move])
+
         if heuristic > bestHeuristic:
             bestHeuristic = heuristic
             bestMove = move
+
     return bestMove
 
 _DEPTH = 2
@@ -130,38 +134,35 @@ def stateHeuristic1(maze, depth):
                                        rockOnMaze, rockRow, rockCol,
                                        onThunder):
         d = euclideanDistance((pokeRow, pokeCol), (ballRow, ballCol))
+        cross = _HEURSTIC_BOARD[maze.pokeRow][maze.pokeCol] * 0.1
+        candy = 0
+        if candyOnMaze == True: # there is candy
+            candy = 1.0/(0.001+euclideanDistance((maze.pokeRow,
+                                                  maze.pokeCol),
+                                                 (maze.candyRow,
+                                                  maze.candyCol)))
         if d < 3:
-                # too close
-            return d        
+            # too close
+            return d
+        if d > 8:
+            # very safe
+            return candy
         if onThunder == True: # go to candy if on Thunder
-            cross = _HEURSTIC_BOARD[maze.pokeRow][maze.pokeCol] * 0.1
-            candy = 0
-            if candyOnMaze == True: # there is candy
-                candy = 1.0/(0.001+euclideanDistance((maze.pokeRow,
-                                                      maze.pokeCol),
-                                                     (maze.candyRow,
-                                                      maze.candyCol)))
             rock = 0
             if rockOnMaze == True: # there is rock
                 rock =  euclideanDistance((maze.pokeRow, maze.pokeCol),
                                           (maze.rockRow, maze.rockCol))
-            return d + cross + candy*100 + rock*.2
+            return cross + candy*10 + rock*.2 + d
         else: # not on thunder
             if candyOnMaze == True and aheadToCandy(maze.pokeRow,
                             maze.pokeCol, maze.candyRow,
                             maze.candyCol, maze.ballRow, maze.ballCol):
+                # pikachu has the advantage of getting candy
                 candy= 1.0/(0.001+euclideanDistance((maze.pokeRow,
                                                       maze.pokeCol),
                                                      (maze.candyRow,
                                                       maze.candyCol)))
-                return d + candy*2
-            cross = _HEURSTIC_BOARD[maze.pokeRow][maze.pokeCol] * 0.1
-            candy = 0
-            if candyOnMaze == True: # there is candy
-                candy = 1.0/(0.001+euclideanDistance((maze.pokeRow,
-                                                      maze.pokeCol),
-                                                     (maze.candyRow,
-                                                      maze.candyCol)))
+                return d + candy*1.5 + cross*3
             rock = 0
             if rockOnMaze == True: # there is rock
                 rock =  euclideanDistance((maze.pokeRow, maze.pokeCol),
@@ -187,7 +188,8 @@ def stateHeuristic1(maze, depth):
                 bestHeuristic = heuristic
     # the reason to add stateHeuristic1(maze, depth=_DEPTH) is to
     # break ties by the heurisic of the CURRENT move
-    return bestHeuristic + stateHeuristic1(maze,depth=_DEPTH)*0.1
+    # a = random.randint(0,10) / 1000.0
+    return bestHeuristic + stateHeuristic1(maze,depth=_DEPTH)*0.1 #+ a
 
 
 def AI3_EuclideanDistanceWithSearch(maze):
@@ -206,7 +208,14 @@ def AI3_EuclideanDistanceWithSearch(maze):
 def useThunderAI(maze):
     if maze.onThunder == True:
         return False
-
+    if maze.pokeCandyCount == 3:
+        # has three rare candies
+        pokeCandy = euclideanDistance((maze.pokeRow, maze.pokeCol),
+                                      (maze.candyRow, maze.candyCol))
+        if pokeCandy < 3:
+            # very close to candy
+            return True
+    
     # when player and pikachu are competing for a candy, player is not too
     # close to the candy, use thunderbolt and get that candy.
     if maze.candyOnMaze:

@@ -1,2 +1,28 @@
-This is my 15112 term project.
-It is a 3D Pokemon game made by Python.
+This is a Pokemon-theme game with two modes. The first mode is the actual
+game, where you control a pokeball in a 3D maze to capture Pikachu. Pikachu
+runs away from you and uses thunderbolt to stop you from getting close. You
+will fight for rare candies on the maze with Pikachu. If you have rare candies, you can use Geodude, Charmander, or Caterpie's moves. If Pikachu has rare
+candies, it can use thunderbolt. Try your best to capture Pikachu as soon
+as possible!
+The second mode is "roam mode." It is essentially a music player. You walk in
+your pokemon garden and listen to pokemon songs. A place to relax.
+
+
+How to run it:
+1. Download the source code and resources from:
+https://github.com/pavelkang/Term_Project
+2. Download and install Panda3D from www.panda.org
+3. Use these command to run different "modes":
+
+Single Player Mode: python ball.py
+Roam Mode: python roam.py
+
+Credits:
+1. Kai Kang - The main developer of this game.
+2. Panda3D - a 3D engine developed by Carnegie Mellon University.
+   www.panda3d.org
+3. Roe Studio - a blog that contains 3D pokemon models.
+   http://roestudios.co.uk/project/3d-pokemon-models/		
+4. Khinsider - a website that provides music sources
+   downloads.khinsider.com/pokemon‎
+5. Chris Barker - mentor of this project who has provided a lot of insights

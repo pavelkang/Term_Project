@@ -16,7 +16,7 @@ _ROWS, _COLS = 9, 15
 _ROW_LABEL = (4, 3, 2, 1, 0.1, -0.8, -1.8, -2.8, -4)
 _COL_LABEL = (-8.3, -7.2, -6.3, -4.5, -3.3, -2.4, -1.5,
                0, 1.3, 2.5, 3.5, 4.5, 6, 7.2, 8.3)
-_LEFT_COL_LABEL = [i+0.25 for i in _COL_LABEL]
+_LEFT_COL_LABEL = [i+0.28 for i in _COL_LABEL]
 _RIGHT_COL_LABEL = [i-0.4 for i in _COL_LABEL]
 _UP_ROW_LABEL = [i-0.3 for i in _ROW_LABEL]
 _DOWN_ROW_LABEL = [i+0.3 for i in _ROW_LABEL]

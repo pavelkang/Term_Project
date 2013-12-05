@@ -1,0 +1,69 @@
+* Design
+
+** Module Explanation
+   - Single Player Mode
+     - ball.py: 
+       The main program of the game.
+     - maze.py:
+       An implementation of the 2D representation of the 3D maze. Stores
+       essential information and serves as the bridge between the game and
+       the AI.
+     - AI.py:
+       Implementation of algorithms that helps Pikachu determine which direc-
+       tion Pikachu goes.
+     - Key_Control.py
+       Deals with keyboard input in the game.
+     - load.py
+       A helper module that has helper functions to help load sources such as
+       pictures, sounds, models, textures, etc.
+     - Model_Load.py
+       Load 3D models and specify their positions, scale, Hpr(rotation), etc.
+     - TwoDInterface.py
+       Load 2D graphics and specify their positions, scale, etc.
+     - util.py
+       Helper functions that are used both in ball.py and roam.py.
+   - Roam Mode
+     - roam.py:
+       The main program of the roam mode
+
+** The Purpose
+   Pokemon is probably the most popular game on all platforms so far. It has
+incredible character design, plot, etc. However, one feature lacking in tra-
+ditional Pokemon RPG games is that the graphics are 2D and the pace of pokemon
+battle is pretty slow. So I tried to solve that problem and integrate 3D pokemon
+models into my game to make pokemons come to life. However, making one complicated
+pokemon battle game in 3D will involve programming skills and advanced use of
+3D modelling that are beyond my ability. So I decided to break the problem.
+In the roam mode, I am doing advanced 3D modelling, including using models with
+alpha channel, making skybox, animating 3D models in Blender. So basically, roam
+mode is more about letting my users enjoy a 3D world of Pokemons and pokemon-related
+music. The single player mode involves more programming and algorithms.
+
+** The Aproaches 
+   - The roam mode is based on my dream as a Pokemon fanatic that one day I can
+live in an actual world with those pokemons. So there is no similar programs
+on the Internet. However, the program is based on a sample program that comes
+with Panda3D module: roaming-ralph. It is about moving a 3-D character in an
+environment. I added skybox, pokemon models, animations, and most importantly,
+made the third-person perspective to first-person, which makes it more real.
+
+   - The single player mode is inspired by Pacman. In Pacman, ghosts are trying
+to eat you. But in this pokemon game, the computer, Pikachu, is running away 
+from you. It is also based on a sample program that comes with Panda3D: ball-in
+maze. I remade the 3D maze, and wrote AI for Pikachu.
+
+** User Interface
+   - In order to make 3D more real, I try to avoid 2D interface. 
+     - In roam mode, there is no user interface, just instructions printed 
+       on the screen and you can hide them by pressing "h."
+     - In single player mode, I want the maze to stay in the center of the 
+       program. Thus, I want to do my best to reduce the number of 2D widgets
+       in the view, and "squeeze" the 2D stuff in the corner to prevent them
+       from blocking users' views. I put pokemon pictures at the lower right
+       corner, and the clock on the top right corner, because they are both
+       noticeable and not view-blocking.
+       
+       
+  
+
+

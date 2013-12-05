@@ -52,7 +52,7 @@ ACCELERATION = 140
 MAX_SPEED = 4
 MAX_SPEED_SQ = MAX_SPEED ** 2
 _JERK = 0.06
-_SPEED = 0.05
+_SPEED = 0.01
 UP = Vec3(0,0,1) # upward vector
 _FLOOR = 1
 _FOCUS = [0,0,0]
@@ -515,6 +515,7 @@ class Labryn(ShowBase):
         return task.cont
     
     def initialize(self):
+        taskMgr.stop()
         self.musicCounter, self.clock = 0, 0
         self.gameOverCounter = 0
         self.clockMSG = None
